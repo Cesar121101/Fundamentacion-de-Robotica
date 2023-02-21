@@ -4,8 +4,6 @@ import numpy as np
 from pid_control.msg import motor_output
 from pid_control.msg import motor_input
 
-print("hola")
-
 #Setup parameters, vriables and callback functions here (if required)
 
 
