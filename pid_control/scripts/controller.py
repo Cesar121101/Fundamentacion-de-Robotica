@@ -5,7 +5,7 @@ from pid_control.msg import motor_output
 from pid_control.msg import motor_input
 
 #Setup parameters, vriables and callback functions here (if required)
-
+print("hola como estas")
 
 #Stop Condition
 def stop():
