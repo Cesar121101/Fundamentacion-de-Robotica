@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+
+<launch>
+
+    <node pkg="challenge1" type="generator.py" name="generator"
+    output="screen" />
+
+    <node pkg="challenge1" type="process.py" name="process"
+    output="screen" launch-prefix="gnome-terminal --command" />
+
+    <node name = "" pkg = "rqt_plot" type = "rqt_plot" args = "/signal/proc_signal" />
+
+    <node name = "" pkg = "rqt_graph" type = "rqt_graph" />
+
+</launch>
