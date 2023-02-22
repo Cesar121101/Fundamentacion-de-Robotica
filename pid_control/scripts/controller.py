@@ -3,8 +3,12 @@ import rospy
 import numpy as np
 from pid_control.msg import motor_output
 from pid_control.msg import motor_input
+from pid_control.msg import set_point
 
 #Setup parameters, vriables and callback functions here (if required)
+def set_point_callback(msg):
+    rospy.loginfo("I heard %s", msg.data)
+
 
 #Stop Condition
 def stop():
@@ -19,7 +23,7 @@ if __name__=='__main__':
     rospy.on_shutdown(stop)
 
     #Setup Publishers and subscribers here
-
+    rospy.Subscriber("set_point", set_point, set_point_callback)
 
     print("The Controller is Running")
     #Run the node
