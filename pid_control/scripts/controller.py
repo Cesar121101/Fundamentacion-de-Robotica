@@ -10,12 +10,9 @@ setpoint = 0.0
 output = motor_input()
 superError = 0.0
 currentTime = 0.0
-step = 0
-prev_time = -100.0
 
 def PID(error):
     global currentTime
-    global step
     global superError
     
     # P
@@ -42,8 +39,6 @@ def set_point_callback(msg):
 
 def motor_output_callback(msg):
     global currentTime
-    global step
-    step += 1
     rospy.loginfo("Motor output: %s", msg.output)
     
     global setpoint
@@ -52,6 +47,11 @@ def motor_output_callback(msg):
     error = setpoint - msg.output
     currentTime = rospy.get_time()
     control = PID(error)
+
+    if control > 1:
+        control = 1
+    elif control < -1:
+        control = -1
 
     # Throw out
     output.input = control

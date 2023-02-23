@@ -2,9 +2,10 @@
 <launch>
     <rosparam file = "$(find pid_control)/config/system_params.yaml" command = "load"  />
 
-    <param name = "Kp" value = "0.15" />
+    <param name = "Kp" value = "0.1" />
     <param name = "Ki" value = "0.005" />
     <param name = "Kd" value = "0.0" />
+    <param name = "Setpoint" value = "0.0"/>
 
     <node name="system" pkg="pid_control" type="system.py" output="screen" launch-prefix="gnome-terminal --command"/>
     <node name="controller" pkg="pid_control" type="controller.py" output="screen" launch-prefix="gnome-terminal --command"/>
