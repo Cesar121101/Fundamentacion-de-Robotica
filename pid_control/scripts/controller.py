@@ -8,10 +8,10 @@ from pid_control.msg import set_point
 #Setup parameters, vriables and callback functions here (if required)
 def set_point_callback(msg):
     rospy.loginfo("Setpoint: %s", msg.data)
+    rospy.get_param("Setpoint", "No param found")
 
 def motor_output_callback(msg):
-    rospy.loginfo("Motor output: %s", msg.data)
-
+    rospy.loginfo("Motor output: %s", msg.output)
 
 #Stop Condition
 def stop():
