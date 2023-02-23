@@ -10,10 +10,12 @@ setpoint = 0.0
 output = motor_input()
 superError = 0.0
 currentTime = 0.0
+prevError = 0.0
 
 def PID(error):
     global currentTime
     global superError
+    global prevError
     
     # P
     Kp = rospy.get_param("Kp", "No param found")
@@ -26,8 +28,10 @@ def PID(error):
     I = superError*Ki*Ts
 
     # D
-    D = 0
+    Kd = rospy.get_param("Kd", "NO param found")
+    D = Kd*(error-prevError)*0.001
 
+    prevError = error
 
     return (P + I + D)
 

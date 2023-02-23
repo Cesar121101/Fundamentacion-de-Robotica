@@ -26,12 +26,13 @@ if __name__=='__main__':
     msg.setpoint = 0.0
     msg.time = rospy.get_time()
 
-    #Run the node
+	#Run the node
     while not rospy.is_shutdown():
         msg = set_point()
-        msg.setpoint = rospy.get_param("Setpoint", "No setpoint found")
+        msg.setpoint = np.sin(rospy.get_time()*np.pi)
+		#msg.setpoint = rospy.get_param("Setpoint", "No setpoint found")
         msg.time = rospy.get_time()
 
-        #Write your code here
+		#Write your code here
         setpoint_pub.publish(msg)
         rate.sleep()
