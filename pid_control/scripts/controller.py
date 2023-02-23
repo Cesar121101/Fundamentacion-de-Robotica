@@ -8,6 +8,31 @@ from pid_control.msg import set_point
 #Setup parameters, vriables and callback functions here (if required)
 setpoint = 0.0
 output = motor_input()
+superError = 0.0
+currentTime = 0.0
+step = 0
+prev_time = -100.0
+
+def PID(error):
+    global currentTime
+    global step
+    global superError
+    
+    # P
+    Kp = rospy.get_param("Kp", "No param found")
+    P = Kp*error
+
+    # I
+    Ts = 1/100
+    superError += error
+    Ki = rospy.get_param("Ki", "NO param found")
+    I = superError*Ki*Ts
+
+    # D
+    D = 0
+
+
+    return (P + I + D)
 
 def set_point_callback(msg):
     rospy.loginfo("Setpoint: %s", msg.setpoint)
@@ -16,17 +41,23 @@ def set_point_callback(msg):
     setpoint = msg.setpoint
 
 def motor_output_callback(msg):
+    global currentTime
+    global step
+    step += 1
     rospy.loginfo("Motor output: %s", msg.output)
     
     global setpoint
     global output
-    Kp = rospy.get_param("Kp", "No param found")
-    e = setpoint - msg.output
-    output.input = Kp * e
-    output.time = rospy.get_time()
+    
+    error = setpoint - msg.output
+    currentTime = rospy.get_time()
+    control = PID(error)
 
-    rospy.loginfo("Error: %s", e)
-    rospy.loginfo("Kp: %s", Kp)
+    # Throw out
+    output.input = control
+    output.time = currentTime
+
+    rospy.loginfo("Error: %s", error)
     rospy.loginfo("Motor input: %s", output)
 
 #Stop Condition

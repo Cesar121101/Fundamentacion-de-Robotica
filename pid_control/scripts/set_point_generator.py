@@ -23,7 +23,7 @@ if __name__=='__main__':
 
     # Set the message
     msg = set_point()
-    msg.setpoint = 0.5
+    msg.setpoint = 0.50
     msg.time = rospy.get_time()
 
     #Run the node
