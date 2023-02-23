@@ -7,7 +7,10 @@ from pid_control.msg import set_point
 
 #Setup parameters, vriables and callback functions here (if required)
 def set_point_callback(msg):
-    rospy.loginfo("I heard %s", msg.data)
+    rospy.loginfo("Setpoint: %s", msg.data)
+
+def motor_output_callback(msg):
+    rospy.loginfo("Motor output: %s", msg.data)
 
 
 #Stop Condition
@@ -24,6 +27,8 @@ if __name__=='__main__':
 
     #Setup Publishers and subscribers here
     rospy.Subscriber("set_point", set_point, set_point_callback)
+    rospy.Subscriber("motor_output", motor_output, motor_output_callback)
+    pub = rospy.Publisher("motor_input", motor_input , queue_size=1) 
 
     print("The Controller is Running")
     #Run the node
