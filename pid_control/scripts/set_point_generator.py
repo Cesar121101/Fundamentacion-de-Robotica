@@ -30,7 +30,8 @@ if __name__=='__main__':
     while not rospy.is_shutdown():
         msg = set_point()
         #msg.setpoint = rospy.get_param("Setpoint", "No setpoint found")
-        msg.setpoint = np.sin(rospy.get_time()*0.25*np.pi)
+        #msg.setpoint = np.sin(rospy.get_time()*np.pi)
+        msg.setpoint = 5
         msg.time = rospy.get_time()
 
 		#Write your code here
