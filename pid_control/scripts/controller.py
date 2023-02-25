@@ -28,7 +28,7 @@ def PID(error):
     Ts = 1/100
     superError += error
     Ki = rospy.get_param("Ki", "NO param found")
-    I = superError*Ki*Ts*0
+    I = superError*Ki*Ts
 
     # D
     Kd = rospy.get_param("Kd", "NO param found")
@@ -79,7 +79,10 @@ if __name__=='__main__':
         rospy.loginfo("Motor output: %s", motorOut.output)
         rospy.loginfo("Error: %s", error)
         rospy.loginfo("Motor input: %s", out)
-
+        if(out.input > 1):
+            out.input = 1
+        elif(out.input < -1):
+            out.input = -1
 
         #Write your code here
         error_pub.publish(error)

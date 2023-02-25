@@ -46,7 +46,6 @@ if __name__=='__main__':
             previoustime = rospy.get_time()
         msg.setpoint = valoractual
         msg.time = rospy.get_time()
-
 		#Write your code here
         setpoint_pub.publish(msg)
         rate.sleep()
