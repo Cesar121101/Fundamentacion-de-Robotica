@@ -8,11 +8,12 @@ from std_msgs.msg import Float32
 
 #Setup parameters, vriables and callback functions here (if required)
 setpoint = 0.0
-output = motor_input()
+out = motor_input()
 superError = 0.0
 currentTime = 0.0
 prevError = 0.0
 errorGlob = 0.0
+motorOut = motor_output()
 
 def PID(error):
     global currentTime
@@ -27,7 +28,7 @@ def PID(error):
     Ts = 1/100
     superError += error
     Ki = rospy.get_param("Ki", "NO param found")
-    I = superError*Ki*Ts
+    I = superError*Ki*Ts*0
 
     # D
     Kd = rospy.get_param("Kd", "NO param found")
@@ -36,6 +37,7 @@ def PID(error):
     prevError = error
 
     return (P + I + D)
+    
 
 def set_point_callback(msg):
     rospy.loginfo("Setpoint: %s", msg.setpoint)
@@ -44,29 +46,10 @@ def set_point_callback(msg):
     setpoint = msg.setpoint
 
 def motor_output_callback(msg):
-    global currentTime
-    global errorGlob
-    rospy.loginfo("Motor output: %s", msg.output)
-    
-    global setpoint
-    global output
-    
-    error = setpoint - msg.output
-    errorGlob = error
-    currentTime = rospy.get_time()
-    control = PID(error)
-
-    if control > 1:
-        control = 1
-    elif control < -1:
-        control = -1
-
-    # Throw out
-    output.input = control
-    output.time = currentTime
-
-    rospy.loginfo("Error: %s", error)
-    rospy.loginfo("Motor input: %s", output)
+    global motor_output
+    motorOut.output = msg.output
+    motorOut.time = msg.time
+    motorOut.status = msg.status
 
 #Stop Condition
 def stop():
@@ -89,8 +72,16 @@ if __name__=='__main__':
 
     #Run the node
     while not rospy.is_shutdown():
+        error = setpoint - motorOut.output
+        out.input = PID(error)
+        out.time = motorOut.time
+
+        rospy.loginfo("Motor output: %s", motorOut.output)
+        rospy.loginfo("Error: %s", error)
+        rospy.loginfo("Motor input: %s", out)
+
 
         #Write your code here
-        error_pub.publish(errorGlob)
-        input_pub.publish(output)
+        error_pub.publish(error)
+        input_pub.publish(out)
         rate.sleep()
