@@ -2,7 +2,7 @@
 <launch>
     <rosparam file = "$(find pid_control)/config/system_params.yaml" command = "load"  />
 
-    <param name = "Kp" value = "0.076" />
+    <param name = "Kp" value = "0.1" />
     <param name = "Ki" value = "2.0" />
     <param name = "Kd" value = "0.0" />
     <param name = "Setpoint" value = "0.0"/>
@@ -10,5 +10,5 @@
     <node name="system" pkg="pid_control" type="system.py" output="screen" launch-prefix="gnome-terminal --command"/>
     <node name="controller" pkg="pid_control" type="controller.py" output="screen" launch-prefix="gnome-terminal --command"/>
     <node name="set_point_generator" pkg="pid_control" type="set_point_generator.py" output="screen" launch-prefix="gnome-terminal --command"/>
-    <node name="rqt_plot" pkg="rqt_plot" type="rqt_plot" output="screen"  args="/motor_output/output /motor_input/input /set_point/setpoint"/>
+    <node name="rqt_plot" pkg="rqt_plot" type="rqt_plot" output="screen"  args="/motor_output/output /motor_input/input /set_point/setpoint /error/errorGlob"/>
 </launch>
