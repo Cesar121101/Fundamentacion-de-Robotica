@@ -55,7 +55,7 @@ def motor_output_callback(msg):
     errorGlob = error
     currentTime = rospy.get_time()
     control = PID(error)
-
+    
     if control > 1:
         control = 1
     elif control < -1:
