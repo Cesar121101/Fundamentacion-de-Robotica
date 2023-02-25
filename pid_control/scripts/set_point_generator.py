@@ -26,11 +26,25 @@ if __name__=='__main__':
     msg.setpoint = 0.0
     msg.time = rospy.get_time()
 
+    #Set previous time 
+    previoustime = rospy.get_time()
+    flag = 1
+    valoractual = 0.0
+
 	#Run the node
     while not rospy.is_shutdown():
         msg = set_point()
-        msg.setpoint = rospy.get_param("Setpoint", "No setpoint found")
+        #msg.setpoint = rospy.get_param("Setpoint", "No setpoint found")
         #msg.setpoint = np.sin(rospy.get_time()*0.25*np.pi)
+        if(rospy.get_time() - previoustime >= 5): 
+            if(flag == 1): 
+                valoractual = 5.0
+                flag = 0
+            elif(flag == 0):
+                valoractual = -5.0
+                flag = 1
+            previoustime = rospy.get_time()
+        msg.setpoint = valoractual
         msg.time = rospy.get_time()
 
 		#Write your code here
