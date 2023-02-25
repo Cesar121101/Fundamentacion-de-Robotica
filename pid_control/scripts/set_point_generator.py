@@ -36,7 +36,7 @@ if __name__=='__main__':
         msg = set_point()
         #msg.setpoint = rospy.get_param("Setpoint", "No setpoint found")
         #msg.setpoint = np.sin(rospy.get_time()*0.25*np.pi)
-        if(rospy.get_time() - previoustime >= 5): 
+        if(rospy.get_time() - previoustime >= 5):
             if(flag == 1): 
                 valoractual = 5.0
                 flag = 0
