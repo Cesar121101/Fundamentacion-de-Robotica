@@ -26,9 +26,9 @@ def PID(error):
 
     # I
     Ts = 1/100
-    superError += error
+    superError += error*Ts
     Ki = rospy.get_param("Ki", "NO param found")
-    I = superError*Ki*Ts*0
+    I = superError*Ki
 
     # D
     Kd = rospy.get_param("Kd", "NO param found")
