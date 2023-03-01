@@ -28,7 +28,7 @@ if __name__=='__main__':
         #msg.input = np.sin(rospy.get_time()*0.8)*4
         #msg.time = rospy.get_time()
 
-        msg = np.sin(rospy.get_time()*0.8)*4
+        msg = np.sin(rospy.get_time()*0.8)
 
 		# Publish message
         pwm_pub.publish(msg)
