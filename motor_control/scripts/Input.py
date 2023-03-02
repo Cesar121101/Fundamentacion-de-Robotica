@@ -12,7 +12,7 @@ def stop():
 
 if __name__=='__main__':
     print("The Input Genertor is Running")
-
+    
     #Initialise and Setup node
     rospy.init_node("input")
     rate = rospy.Rate(100)
