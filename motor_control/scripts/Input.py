@@ -19,7 +19,13 @@ if __name__=='__main__':
     rospy.on_shutdown(stop)
 
     #Setup Publisher
-    pwm_pub = rospy.Publisher("cmd_pwm", Float32 , queue_size=1) 
+    pwm_pub = rospy.Publisher("cmd_pwm", Float32, queue_size=1) 
+
+
+    #Set previous time 
+    previoustime = rospy.get_time()
+    flag = 1
+    valoractual = 0.0
 
 	#Run the node
     while not rospy.is_shutdown():
@@ -27,8 +33,15 @@ if __name__=='__main__':
         #msg = motor_input()
         #msg.input = np.sin(rospy.get_time()*0.8)*4
         #msg.time = rospy.get_time()
-
-        msg = np.sin(rospy.get_time()*0.8)
+        if(rospy.get_time() - previoustime >= 5):
+            if(flag == 1): 
+                valoractual = 1.0
+                flag = 0
+            elif(flag == 0):
+                valoractual = 0.0
+                flag = 1
+            previoustime = rospy.get_time()
+        msg = valoractual
 
 		# Publish message
         pwm_pub.publish(msg)
