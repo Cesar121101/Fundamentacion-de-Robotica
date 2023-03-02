@@ -29,20 +29,8 @@ if __name__=='__main__':
 
 	#Run the node
     while not rospy.is_shutdown():
-        # Custom message
-        #msg = motor_input()
-        #msg.input = np.sin(rospy.get_time()*0.8)*4
-        #msg.time = rospy.get_time()
-        if(rospy.get_time() - previoustime >= 5):
-            if(flag == 1): 
-                valoractual = 1.0
-                flag = 0
-            elif(flag == 0):
-                valoractual = 0.0
-                flag = 1
-            previoustime = rospy.get_time()
-        msg = valoractual
 
+        msg = np.sin(rospy.get_time()*0.8)+1
 		# Publish message
         pwm_pub.publish(msg)
         rate.sleep()
