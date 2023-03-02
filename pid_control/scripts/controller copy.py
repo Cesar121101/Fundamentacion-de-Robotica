@@ -87,7 +87,6 @@ if __name__=='__main__':
         rospy.loginfo("Motor output: %s", motorOut.output)
         rospy.loginfo("Error: %s", error)
         rospy.loginfo("Motor input: %s", out)
-        
         if(out.input > 1):
             out.input = 1
         elif(out.input < -1):

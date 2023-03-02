@@ -35,7 +35,7 @@ if __name__=='__main__':
     while not rospy.is_shutdown():
         msg = set_point()
         #msg.setpoint = rospy.get_param("Setpoint", "No setpoint found")
-        #msg.setpoint = np.sin(rospy.get_time()*0.25*np.pi)
+        #msg.setpoint = np.sin(rospy.get_time()*0.8)*4
         if(rospy.get_time() - previoustime >= 5):
             if(flag == 1): 
                 valoractual = 5.0
@@ -46,7 +46,6 @@ if __name__=='__main__':
             previoustime = rospy.get_time()
         msg.setpoint = valoractual
         msg.time = rospy.get_time()
-
 		#Write your code here
         setpoint_pub.publish(msg)
         rate.sleep()
