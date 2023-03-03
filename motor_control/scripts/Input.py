@@ -24,13 +24,23 @@ if __name__=='__main__':
 
     #Set previous time 
     previoustime = rospy.get_time()
-    flag = 1
     valoractual = 0.0
+    flag = 1
 
 	#Run the node
     while not rospy.is_shutdown():
-
-        msg = np.sin(rospy.get_time()*0.8)+1
+        if(rospy.get_time() - previoustime >= 0.05):
+            if(flag == 1): 
+                valoractual += 1
+                if(valoractual >= 255):
+                    flag = 0
+            elif(flag == 0):
+                valoractual -= 1
+                if(valoractual <= 0):
+                    flag = 1
+            previoustime = rospy.get_time() 
+        msg = valoractual
+        #msg = np.sin(rospy.get_time() * 0.05 * np.pi)+1
 		# Publish message
         pwm_pub.publish(msg)
         rate.sleep()

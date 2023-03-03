@@ -24,9 +24,8 @@ void setup() {
 }
 
 void loop() {
-  //pwm_signal = pwm_sub.msg;
   pwm_signal.data = value;
-  analogWrite(ledPin, pwm_signal.data);
+  analogWrite(ledPin, value);
   motor_pwm.publish(&pwm_signal);
   motor.spinOnce();
   delay(1000);
