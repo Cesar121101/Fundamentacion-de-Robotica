@@ -2,8 +2,11 @@
 #include <std_msgs/String.h>
 #include <std_msgs/Float32.h>
 
-int ledPin = 3;
+int Enable = 3;
+int Izquierda = 5;
+int Derecha = 6;
 int value;
+
 
 void pwm_callback(const std_msgs::Float32 &msg){
   value = msg.data;
@@ -19,13 +22,22 @@ void setup() {
   
   motor.initNode();
   motor.advertise(motor_pwm);
-  pinMode(ledPin, OUTPUT);
+  pinMode(Enable, OUTPUT);
+  pinMode(Izquierda, OUTPUT);
+  pinMode(Derecha, OUTPUT);
   motor.subscribe(pwm_sub);
+  analogWrite(Enable, 255);
 }
 
 void loop() {
   pwm_signal.data = value;
-  analogWrite(ledPin, value);
+  if (value > 0){
+    analogWrite(Derecha, value);
+    analogWrite(Izquierda, 0);
+  } else {
+    analogWrite(Izquierda, abs(value));
+    analogWrite(Derecha, 0);
+  }
   motor_pwm.publish(&pwm_signal);
   motor.spinOnce();
   delay(1000);

@@ -26,20 +26,37 @@ if __name__=='__main__':
     previoustime = rospy.get_time()
     valoractual = 0.0
     flag = 1
+    dir = True
 
 	#Run the node
     while not rospy.is_shutdown():
-        if(rospy.get_time() - previoustime >= 0.05):
-            if(flag == 1): 
-                valoractual += 1
-                if(valoractual >= 255):
+
+        if rospy.get_param("Wave", "No param found") == 1.0:
+            if(rospy.get_time() - previoustime >= 0.05):
+                if(flag == 1): 
+                    valoractual += 1
+                    if(valoractual >= 255):
+                        flag = 0
+                elif(flag == 0):
+                    valoractual -= 1
+                    if(valoractual <= -255):
+                        flag = 1
+                previoustime = rospy.get_time() 
+
+        elif rospy.get_param("Wave", "No param found") == 2.0:
+            if(rospy.get_time() - previoustime >= 10):
+                if(flag == 1): 
+                    valoractual = 255
                     flag = 0
-            elif(flag == 0):
-                valoractual -= 1
-                if(valoractual <= 0):
+                elif(flag == 0):
+                    valoractual = -255
                     flag = 1
-            previoustime = rospy.get_time() 
-        msg = valoractual
+                previoustime = rospy.get_time()
+
+        else:
+            valoractual = rospy.get_param("Step", "No step found")
+
+        msg= valoractual
         #msg = np.sin(rospy.get_time() * 0.05 * np.pi)+1
 		# Publish message
         pwm_pub.publish(msg)
