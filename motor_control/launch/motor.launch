@@ -3,7 +3,7 @@
 
     <rosparam file = "$(find motor_control)/config/params.yaml" command = "load"  />
 
-    <param name = "Wave" value = "2.0"/>
+    <param name = "Wave" value = "1.0"/>
     <param name = "Step" value = "255.0"/>
 
     <node name="input" pkg="motor_control" type="Input.py" output="screen" launch-prefix="gnome-terminal --command"/>
