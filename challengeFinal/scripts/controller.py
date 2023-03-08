@@ -25,16 +25,16 @@ def PID(error):
     dt = currentTime-prevTime
     
     # P
-    Kp = rospy.get_param("Kp", "No param found")
+    Kp = rospy.get_param("/Kp", "No param found")
     P = Kp*error
 
     # I
     superError += error * dt
-    Ki = rospy.get_param("Ki", "NO param found")
+    Ki = rospy.get_param("/Ki", "No param found")
     I = superError*Ki
 
     # D
-    Kd = rospy.get_param("Kd", "NO param found")
+    Kd = rospy.get_param("/Kd", "No param found")
     D = Kd*((error-prevError)/dt)
 
     prevError = error
@@ -49,14 +49,13 @@ def set_point_callback(msg):
     setpoint = msg.setpoint
 
 def motor_output_callback(msg):
-    global motor_output
+    global motorOut
     motorOut.output = msg.output
     motorOut.time = msg.time
     motorOut.status = msg.status
 
 #Stop Condition
 def stop():
- #Setup the stop message (can be the same as the control message)
   print("Stopping")
 
 if __name__=='__main__':
@@ -93,7 +92,7 @@ if __name__=='__main__':
         elif(out.input < -1):
             out.input = -1
 
-        #Write your code here
+        # Publish error and motor_input
         error_pub.publish(error)
         input_pub.publish(out)
         rate.sleep()

@@ -3,11 +3,8 @@ import rospy
 import numpy as np
 from challengeFinal.msg import set_point
 
-# Setup Variables, parameters and messages to be used (if required)
-
 #Stop Condition
 def stop():
- #Setup the stop message (can be the same as the control message)
   print("Stopping")
 
 if __name__=='__main__':
@@ -36,6 +33,8 @@ if __name__=='__main__':
         msg = set_point()
         #msg.setpoint = rospy.get_param("Setpoint", "No setpoint found")
         #msg.setpoint = np.sin(rospy.get_time()*0.8)*4
+
+        # Change set_point every 5 seconds (for testing)
         if(rospy.get_time() - previoustime >= 5):
             if(flag == 1): 
                 valoractual = 5.0
@@ -45,7 +44,8 @@ if __name__=='__main__':
                 flag = 1
             previoustime = rospy.get_time()
         msg.setpoint = valoractual
+
         msg.time = rospy.get_time()
-		#Write your code here
+        # Publish the message
         setpoint_pub.publish(msg)
         rate.sleep()
