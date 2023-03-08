@@ -27,7 +27,7 @@ if __name__=='__main__':
 
 	#Run the node
     while not rospy.is_shutdown():
-        #Si el valor del parametro Wave = 1, la función es una onda triangular
+        
         if rospy.get_param("Wave", "No param found") == 1.0:
             if(rospy.get_time() - previoustime >= 0.05):
                 if(flag == 1): 
@@ -39,7 +39,7 @@ if __name__=='__main__':
                     if(valoractual <= -255):
                         flag = 1
                 previoustime = rospy.get_time() 
-        #Si el valor del parametro Wave = 2 , la función es una onda cuadrada
+        
         elif rospy.get_param("Wave", "No param found") == 2.0:
             if(rospy.get_time() - previoustime >= 10):
                 if(flag == 1): 
@@ -49,12 +49,10 @@ if __name__=='__main__':
                     valoractual = -255
                     flag = 1
                 previoustime = rospy.get_time()
-        #Si el valor de parametro Wave >= 3, La función es una step
+        
         else:
             valoractual = rospy.get_param("Step", "No step found")
-
-        #El mensaje que mandamos va a ser la variable de setpoint (valorctual)
+            
         msg = valoractual
-		# Publish message
         pwm_pub.publish(msg)
         rate.sleep()
