@@ -69,8 +69,8 @@ if __name__=='__main__':
     #Setup Publishers and subscribers here
     rospy.Subscriber("set_point", set_point, set_point_callback)
     rospy.Subscriber("motor_output", motor_output, motor_output_callback)
-    input_pub = rospy.Publisher("motor_input", motor_input , queue_size=1)
-    error_pub = rospy.Publisher("error", Float32 , queue_size=1) 
+    input_pub = rospy.Publisher("motor_input", Float32 , queue_size=1)
+    #error_pub = rospy.Publisher("error", Float32 , queue_size=1) 
 
     #Set the current time
     currentTime = rospy.get_time()
@@ -80,19 +80,14 @@ if __name__=='__main__':
         prevTime = currentTime
         currentTime = rospy.get_time()
         error = setpoint - motorOut.output
-        out.input = PID(error)
-        out.time = motorOut.time
+        out = setpoint
+        #out.time = motorOut.time
 
         rospy.loginfo("Motor output: %s", motorOut.output)
         rospy.loginfo("Error: %s", error)
         rospy.loginfo("Motor input: %s", out)
-        
-        if(out.input > 1):
-            out.input = 1
-        elif(out.input < -1):
-            out.input = -1
 
         # Publish error and motor_input
-        error_pub.publish(error)
+        #error_pub.publish(error)
         input_pub.publish(out)
         rate.sleep()

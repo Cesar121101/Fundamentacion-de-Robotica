@@ -3,7 +3,7 @@
 #include <std_msgs/Float32.h>
 
 //Pines del Puente H
-int Enable = 3;
+int Enable = 9;
 int Izquierda = 5;
 int Derecha = 6;
 

@@ -3,6 +3,11 @@
 
     <rosparam file = "$(find challengeFinal)/config/control_params.yaml" command = "load"  />
 
+    <param name = "Kp" value = "0.001154" />
+    <param name = "Ki" value = "0.7691" />
+    <param name = "Kd" value = "0.00003125" />
+    <param name = "Setpoint" value = "0.0"/>
+
     <node name="set_point_generator" pkg="challengeFinal" type="set_point_generator.py" output="screen" launch-prefix="gnome-terminal --command"/>
     <node name="controller" pkg="challengeFinal" type="controller.py" output="screen" launch-prefix="gnome-terminal --command"/>
     <node name="motor" pkg="rosserial_python" type="serial_node.py">    

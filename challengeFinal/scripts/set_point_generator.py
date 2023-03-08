@@ -37,10 +37,10 @@ if __name__=='__main__':
         # Change set_point every 5 seconds (for testing)
         if(rospy.get_time() - previoustime >= 5):
             if(flag == 1): 
-                valoractual = 5.0
+                valoractual = 75.0
                 flag = 0
             elif(flag == 0):
-                valoractual = -5.0
+                valoractual = -75.0
                 flag = 1
             previoustime = rospy.get_time()
         msg.setpoint = valoractual

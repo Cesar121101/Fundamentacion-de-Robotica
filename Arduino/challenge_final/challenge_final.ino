@@ -3,12 +3,25 @@
 #include <std_msgs/Float32.h>
 
 //Pines del Puente H
-int Enable = 3;
+int Enable = 9;
 int Izquierda = 5;
 int Derecha = 6;
 
+// Pines de Encoders
+int encoderA = 2;
+int encoderB = 3;
+float protectedCount = 0;
+float previousCount = 0;
+
+
+// Contador
+volatile int count = 0;
+
 //Variable para guardar el valor que recibimos del nodo input
 int value;
+
+#define readA bitRead(PIND,2)//faster than digitalRead()
+#define readB bitRead(PIND,3)//faster than digitalRead()
 
 //Funcion callback para la subscripcion
 void input_callback(const std_msgs::Float32 &msg){
@@ -28,6 +41,13 @@ ros::Publisher motor_output("motor_output", &pwm_signal);
 
 //Iniciamos el nodo, nos subscribimos al topico cmd_pwm e inicializamos los pines del puente H
 void setup() {
+
+  pinMode(encoderA, INPUT_PULLUP);
+  pinMode(encoderB, INPUT_PULLUP);
+
+  attachInterrupt(digitalPinToInterrupt(encoderA), ACallback, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(encoderB), BCallback, CHANGE);
+
   motor.initNode();
   motor.advertise(motor_output);
   pinMode(Enable, OUTPUT);
@@ -38,8 +58,18 @@ void setup() {
 }
 
 void loop() {
+  
+  noInterrupts();
+  protectedCount = count;
+  interrupts();
+  
+  if(protectedCount != previousCount) {
+    pwm_signal.data = protectedCount;
+  }
+  previousCount = protectedCount;
+  
   //Asignamos el valor que recibimos en callback hacia la variable que publicamos de regreso
-  pwm_signal.data = value;
+  //pwm_signal.data = value;
 
   //Si el valor que recibimos de la señal es positivo, giramos en hacia la derecha con ese valor
   if (value > 0){
@@ -55,5 +85,21 @@ void loop() {
   //Publicamos el valor del puente HS
   motor_output.publish(&pwm_signal);
   motor.spinOnce();
-  delay(1000);
+  delay(5);
+}
+
+void ACallback(){
+  if(readB != readA) {
+    count ++;
+  } else {
+    count --;
+  }
+}
+
+void BCallback(){
+  if (readA == readB) {
+    count ++;
+  } else {
+    count --;
+  }
 }
