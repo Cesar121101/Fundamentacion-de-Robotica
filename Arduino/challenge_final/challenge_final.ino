@@ -45,8 +45,8 @@ void setup() {
   pinMode(encoderA, INPUT_PULLUP);
   pinMode(encoderB, INPUT_PULLUP);
 
-  attachInterrupt(digitalPinToInterrupt(encoderA), ACallback, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(encoderB), BCallback, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(encoderA), ACallback, FALLING);
+  attachInterrupt(digitalPinToInterrupt(encoderB), BCallback, FALLING);
 
   motor.initNode();
   motor.advertise(motor_output);
@@ -85,21 +85,21 @@ void loop() {
   //Publicamos el valor del puente HS
   motor_output.publish(&pwm_signal);
   motor.spinOnce();
-  delay(5);
+  //delay(5);
 }
 
 void ACallback(){
   if(readB != readA) {
-    count ++;
-  } else {
     count --;
+  } else {
+    count ++;
   }
 }
 
 void BCallback(){
   if (readA == readB) {
-    count ++;
-  } else {
     count --;
+  } else {
+    count ++;
   }
 }
