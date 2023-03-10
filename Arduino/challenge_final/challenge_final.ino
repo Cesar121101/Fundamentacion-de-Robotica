@@ -45,8 +45,8 @@ void setup() {
   pinMode(encoderA, INPUT_PULLUP);
   pinMode(encoderB, INPUT_PULLUP);
 
-  attachInterrupt(digitalPinToInterrupt(encoderA), ACallback, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(encoderB), BCallback, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(encoderA), ACallback, RISING);
+  attachInterrupt(digitalPinToInterrupt(encoderB), BCallback, RISING);
 
   motor.initNode();
   motor.advertise(motor_output);
