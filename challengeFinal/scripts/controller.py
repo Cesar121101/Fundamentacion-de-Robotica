@@ -7,14 +7,16 @@ from challengeFinal.msg import set_point
 from std_msgs.msg import Float32
 
 #Setup parameters, vriables and callback functions here (if required)
-setpoint = 0.0
-out = motor_input()
+setpoint = set_point()
+#out = motor_input()
+out = 0.0
 superError = 0.0
 currentTime = 0.0
 prevTime = 0.0
 prevError = 0.0
 errorGlob = 0.0
-motorOut = motor_output()
+#motorOut = motor_output()
+motorOut = 0.0
 
 def PID(error):
     global currentTime
@@ -46,13 +48,12 @@ def set_point_callback(msg):
     rospy.loginfo("Setpoint: %s", msg.setpoint)
 
     global setpoint
-    setpoint = msg.setpoint
+    setpoint.setpoint = msg.setpoint
+    setpoint.time = msg.time
 
 def motor_output_callback(msg):
     global motorOut
-    motorOut.output = msg.output
-    motorOut.time = msg.time
-    motorOut.status = msg.status
+    motorOut = msg.data
 
 #Stop Condition
 def stop():
@@ -68,7 +69,7 @@ if __name__=='__main__':
 
     #Setup Publishers and subscribers here
     rospy.Subscriber("set_point", set_point, set_point_callback)
-    rospy.Subscriber("motor_output", motor_output, motor_output_callback)
+    rospy.Subscriber("motor_output", Float32, motor_output_callback)
     input_pub = rospy.Publisher("motor_input", Float32 , queue_size=1)
     #error_pub = rospy.Publisher("error", Float32 , queue_size=1) 
 
@@ -79,11 +80,11 @@ if __name__=='__main__':
     while not rospy.is_shutdown():
         prevTime = currentTime
         currentTime = rospy.get_time()
-        error = setpoint - motorOut.output
-        out = setpoint
+        error = setpoint.setpoint - motorOut
+        out = PID(error)/10
         #out.time = motorOut.time
 
-        rospy.loginfo("Motor output: %s", motorOut.output)
+        rospy.loginfo("Motor output: %s", motorOut)
         rospy.loginfo("Error: %s", error)
         rospy.loginfo("Motor input: %s", out)
 
