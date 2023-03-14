@@ -57,11 +57,11 @@ if __name__=='__main__':
 
 
         # Speed limit
-        if valoractual > 10.0:
-            valoractual = 10.0
+        if valoractual > 27.5:
+            valoractual = 27.5
 
-        elif valoractual < -10.0:
-            valoractual = -10.0
+        elif valoractual < -27.5:
+            valoractual = -27.5
         
         # Set message
         msg.setpoint = valoractual

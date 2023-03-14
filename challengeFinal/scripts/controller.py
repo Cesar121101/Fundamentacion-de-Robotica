@@ -81,7 +81,7 @@ if __name__=='__main__':
         currentTime = rospy.get_time()
 
         error = setpoint.setpoint - motorOut
-        out = PID(error)/10
+        out = PID(error)/30
 
         # Log info about Controller
         if setpoint.type == 1.0:
@@ -96,6 +96,15 @@ if __name__=='__main__':
         rospy.loginfo("Motor output: %s", motorOut)
         rospy.loginfo("Error: %s", error)
         rospy.loginfo("Motor input: %s", out)
+
+        # Speed regulation
+        if out > 1.0:
+            out = 1.0
+        elif out < -1.0:
+            out = -1.0
+
+        if out <= 0.05 and out >= -0.05:
+            out = 0.0
 
         # Publish error and motor_input
         error_pub.publish(error)

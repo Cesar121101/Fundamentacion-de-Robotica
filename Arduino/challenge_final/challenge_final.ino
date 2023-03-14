@@ -92,6 +92,11 @@ void loop() {
 
     // Message creation
     pwm_signal.data = roc * 2 * 3.1416;
+    if(pwm_signal.data > 30.0){
+      pwm_signal.data = 30.0;      
+    } else if(pwm_signal.data < -30.0){
+      pwm_signal.data = -30.0;
+    }
 
     previousCount = protectedCount;
     protectedCount = 0;
