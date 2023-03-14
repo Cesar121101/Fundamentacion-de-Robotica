@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 import rospy
 import numpy as np
-from challengeFinal.msg import motor_output
-from challengeFinal.msg import motor_input
 from challengeFinal.msg import set_point
 from std_msgs.msg import Float32
 
@@ -18,6 +16,7 @@ errorGlob = 0.0
 #motorOut = motor_output()
 motorOut = 0.0
 
+# PID function 
 def PID(error):
     global currentTime
     global prevTime
@@ -49,13 +48,13 @@ def set_point_callback(msg):
 
     global setpoint
     setpoint.setpoint = msg.setpoint
-    setpoint.time = msg.time
+    setpoint.type = msg.type
 
 def motor_output_callback(msg):
     global motorOut
     motorOut = msg.data
 
-#Stop Condition
+# Stop Condition
 def stop():
   print("Stopping")
 
@@ -71,7 +70,7 @@ if __name__=='__main__':
     rospy.Subscriber("set_point", set_point, set_point_callback)
     rospy.Subscriber("motor_output", Float32, motor_output_callback)
     input_pub = rospy.Publisher("motor_input", Float32 , queue_size=1)
-    #error_pub = rospy.Publisher("error", Float32 , queue_size=1) 
+    error_pub = rospy.Publisher("error", Float32 , queue_size=1) 
 
     #Set the current time
     currentTime = rospy.get_time()
@@ -80,15 +79,25 @@ if __name__=='__main__':
     while not rospy.is_shutdown():
         prevTime = currentTime
         currentTime = rospy.get_time()
+
         error = setpoint.setpoint - motorOut
         out = PID(error)/10
-        #out.time = motorOut.time
 
+        # Log info about Controller
+        if setpoint.type == 1.0:
+            rospy.loginfo("Type Input: Step")
+        elif setpoint.type == 2.0:
+            rospy.loginfo("Type Input: Square")
+        else:
+            rospy.loginfo("Type Input: Sine")
+
+        rospy.loginfo("Input Value: %s", setpoint.setpoint)
+        
         rospy.loginfo("Motor output: %s", motorOut)
         rospy.loginfo("Error: %s", error)
         rospy.loginfo("Motor input: %s", out)
 
         # Publish error and motor_input
-        #error_pub.publish(error)
+        error_pub.publish(error)
         input_pub.publish(out)
         rate.sleep()

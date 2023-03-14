@@ -23,22 +23,17 @@ int value;
 // New CODE
 #define ENC_COUNT_REV 455
 
-const float count_to_rads = 0.0138091984773;
-const float rpm_to_radians = 678.584;
-const float rad_to_deg = 57.29578;
 
+// Define variables
 float roc = 0;
-float rpm = 0;
-float ang_velocity = 0;
-float ang_velocity_deg = 0;
 
 long previousMillis = 0;
 long currentMillis = 0;
 
 int interval = 10;
 
-#define readA bitRead(PIND,2)//faster than digitalRead()
-#define readB bitRead(PIND,3)//faster than digitalRead()
+#define readA bitRead(PIND,2)
+#define readB bitRead(PIND,3)
 
 //Funcion callback para la subscripcion
 void input_callback(const std_msgs::Float32 &msg){
@@ -59,39 +54,43 @@ ros::Publisher motor_output("motor_output", &pwm_signal);
 //Iniciamos el nodo, nos subscribimos al topico cmd_pwm e inicializamos los pines del puente H
 void setup() {
 
+  // Pins for encoders
   pinMode(encoderA, INPUT_PULLUP);
   pinMode(encoderB, INPUT_PULLUP);
 
   attachInterrupt(digitalPinToInterrupt(encoderA), ACallback, RISING);
   attachInterrupt(digitalPinToInterrupt(encoderB), BCallback, RISING);
 
+  // Node config
   motor.initNode();
   motor.advertise(motor_output);
+
+  // Motor pins config
   pinMode(Enable, OUTPUT);
   pinMode(Izquierda, OUTPUT);
   pinMode(Derecha, OUTPUT);
+
   motor.subscribe(input_sub);
   analogWrite(Enable, 255);
 }
 
 void loop() {
-  
+  // Count updated using interrupts
   noInterrupts();
   protectedCount = count;
   interrupts();
 
   currentMillis = millis();
 
+  // Period of time "interval"
   if (currentMillis - previousMillis > interval) {
     
     previousMillis = currentMillis;
-    //pwm_signal.data = protectedCount;
 
+    // Calculate Rate of change
     roc = (float)((protectedCount-previousCount)/(interval));
-    //rpm = (float)(roc*60/ ENC_COUNT_REV);
-    //ang_velocity = rpm * rpm_to_radians;
-    //ang_velocity_deg = ang_velocity * rad_to_deg;
 
+    // Message creation
     pwm_signal.data = roc * 2 * 3.1416;
 
     previousCount = protectedCount;
@@ -118,6 +117,7 @@ void loop() {
   //delay(5);
 }
 
+// A and B Callback functions for 2 disks
 void ACallback(){
   if(readB != readA) {
     count --;
