@@ -21,7 +21,7 @@ if __name__=='__main__':
     # Set the message
     msg = set_point()
     msg.setpoint = 0.0
-    msg.time = rospy.get_time()
+    msg.type = rospy.get_param("type", "No type found")
 
     #Set previous time 
     previoustime = rospy.get_time()
@@ -30,27 +30,43 @@ if __name__=='__main__':
 
 	#Run the node
     while not rospy.is_shutdown():
-        msg = set_point()
-        #msg.setpoint = rospy.get_param("Setpoint", "No setpoint found")
-        #msg.setpoint = np.sin(rospy.get_time()*0.5)
 
-        if rospy.get_param("/Setpoint", "No setpoint found") > 10:
-            rospy.set_param("/Setpoint", 10.0)
+        # Get caracteristics of input
+        amplitude = rospy.get_param("Amplitude", "No step found")
+        period = rospy.get_param("Period", "No step found")
+        type = rospy.get_param("type", "No type found")
 
-        elif rospy.get_param("/Setpoint", "No setpoint found") < -10:
-            rospy.set_param("/Setpoint", -10.0)
-        # Change set_point every 5 seconds (for testing)
-        if(rospy.get_time() - previoustime >= 5):
-            if(flag == 1): 
-                valoractual = rospy.get_param("/Setpoint", "No setpoint found")
-                flag = 0
-            elif(flag == 0):
-                valoractual = rospy.get_param("/Setpoint", "No setpoint found")
-                flag = 1
-            previoustime = rospy.get_time()
+        # Step
+        if type == 1.0:
+            valoractual = amplitude
+        
+        # Square
+        elif type == 2.0:
+            if(rospy.get_time() - previoustime >= period):
+                if(flag == 1): 
+                    valoractual = amplitude
+                    flag = 0
+                elif(flag == 0):
+                    valoractual = -amplitude
+                    flag = 1
+                previoustime = rospy.get_time()
+
+        # Sine
+        else:
+            valoractual = np.sin(rospy.get_time()*2*np.pi/period)*amplitude
+
+
+        # Speed limit
+        if valoractual > 10.0:
+            valoractual = 10.0
+
+        elif valoractual < -10.0:
+            valoractual = -10.0
+        
+        # Set message
         msg.setpoint = valoractual
+        msg.type = type
 
-        msg.time = rospy.get_time()
         # Publish the message
         setpoint_pub.publish(msg)
         rate.sleep()
