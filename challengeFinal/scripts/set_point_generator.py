@@ -12,7 +12,7 @@ def stop():
 if __name__=='__main__':
     print("The Set Point Genertor is Running")
 
-    #Initialise and Setup node
+    #Initialise and Setup node with rate of 100Hz
     rospy.init_node("Set_Point_Generator")
     rate = rospy.Rate(100)
     rospy.on_shutdown(stop)
@@ -20,7 +20,7 @@ if __name__=='__main__':
     #Setup Publishers and subscribers here
     setpoint_pub = rospy.Publisher("set_point", set_point , queue_size=1) 
 
-    # Set the message
+    # Create the message
     msg = set_point()
     msg.setpoint = 0.0
     msg.type = rospy.get_param("type", "No type found")
@@ -30,48 +30,14 @@ if __name__=='__main__':
     flag = 1
     valoractual = 0.0
     buffer = ""
-	#Run the node
+
+	#Run the node loop
     while not rospy.is_shutdown():
-        key = getkey(blocking=False)
 
-        # EXTRA Keys
-        if key == keys.UP:
-            print("Amplitude:")
-            print(rospy.get_param("/Amplitude", "..."))
-            rospy.set_param("/Amplitude", (rospy.get_param("/Amplitude", "No step found") + 0.5))
-         
-        elif key == keys.DOWN:
-            print("Amplitude:")
-            print(rospy.get_param("/Amplitude", "..."))
-            rospy.set_param("/Amplitude", (rospy.get_param("/Amplitude", "No step found") - 0.5))
-
-        elif key == keys.LEFT:
-            print("Period:")
-            print(rospy.get_param("/Period", "..."))
-            rospy.set_param("/Period", (rospy.get_param("/Period", "No period found") - 1))
-
-        elif key == keys.RIGHT:
-            print("Period:")
-            print(rospy.get_param("/Period", "..."))
-            rospy.set_param("/Period", (rospy.get_param("/Period", "No period found") + 1))
-
-        elif key == "a":
-            rospy.set_param("/type", 1.0)
-
-        elif key == "s":
-            rospy.set_param("/type", 2.0)
-
-        elif key == "d":
-            rospy.set_param("/type", 3.0)
-        else:
-            buffer += key
-
-
-
-        # Get caracteristics of input
-        amplitude = rospy.get_param("/Amplitude", "No step found")
-        period = rospy.get_param("/Period", "No step found")
-        type = rospy.get_param("/type", "No type found")
+        # Get caracteristics of input (of the setpoint function)
+        amplitude = rospy.get_param("/Amplitude", "No step found") # Amplitude of the setpoint
+        period = rospy.get_param("/Period", "No step found") # Period over which the Sine and Square functions run
+        type = rospy.get_param("/type", "No type found") # Type of function, either Step, Square or Sine
 
         # Step
         if type == 1.0:
@@ -93,7 +59,7 @@ if __name__=='__main__':
             valoractual = np.sin(rospy.get_time()*2*np.pi/period)*amplitude
 
 
-        # Speed limit
+        # Speed limit to prevent asking for more speed than it can hanndle
         if valoractual > 27.5:
             valoractual = 27.5
 
@@ -104,6 +70,6 @@ if __name__=='__main__':
         msg.setpoint = valoractual
         msg.type = type
 
-        # Publish the message
+        # Publish the message to topic 'set_point'
         setpoint_pub.publish(msg)
         rate.sleep()
