@@ -2,6 +2,8 @@
 import rospy
 import numpy as np
 from challengeFinal.msg import set_point
+from getkey import getkey, keys
+
 
 #Stop Condition
 def stop():
@@ -27,14 +29,49 @@ if __name__=='__main__':
     previoustime = rospy.get_time()
     flag = 1
     valoractual = 0.0
-
+    buffer = ""
 	#Run the node
     while not rospy.is_shutdown():
+        key = getkey(blocking=False)
+
+        # EXTRA Keys
+        if key == keys.UP:
+            print("Amplitude:")
+            print(rospy.get_param("/Amplitude", "..."))
+            rospy.set_param("/Amplitude", (rospy.get_param("/Amplitude", "No step found") + 0.5))
+         
+        elif key == keys.DOWN:
+            print("Amplitude:")
+            print(rospy.get_param("/Amplitude", "..."))
+            rospy.set_param("/Amplitude", (rospy.get_param("/Amplitude", "No step found") - 0.5))
+
+        elif key == keys.LEFT:
+            print("Period:")
+            print(rospy.get_param("/Period", "..."))
+            rospy.set_param("/Period", (rospy.get_param("/Period", "No period found") - 1))
+
+        elif key == keys.RIGHT:
+            print("Period:")
+            print(rospy.get_param("/Period", "..."))
+            rospy.set_param("/Period", (rospy.get_param("/Period", "No period found") + 1))
+
+        elif key == "a":
+            rospy.set_param("/type", 1.0)
+
+        elif key == "s":
+            rospy.set_param("/type", 2.0)
+
+        elif key == "d":
+            rospy.set_param("/type", 3.0)
+        else:
+            buffer += key
+
+
 
         # Get caracteristics of input
-        amplitude = rospy.get_param("Amplitude", "No step found")
-        period = rospy.get_param("Period", "No step found")
-        type = rospy.get_param("type", "No type found")
+        amplitude = rospy.get_param("/Amplitude", "No step found")
+        period = rospy.get_param("/Period", "No step found")
+        type = rospy.get_param("/type", "No type found")
 
         # Step
         if type == 1.0:
