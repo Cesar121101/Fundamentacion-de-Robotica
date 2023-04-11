@@ -14,6 +14,7 @@ prevTime = 0.0
 prevError = 0.0
 errorGlob = 0.0
 motorOut = 0.0
+msgRobot = Twist()
 
 # PID function 
 def PID(error):
@@ -35,8 +36,8 @@ def PID(error):
 
     # D
     Kd = rospy.get_param("/Kd", "No param found")
-    D = Kd*((error-prevError)/dt)
-
+    #D = Kd*((error-prevError)/dt)
+    D = 0
     prevError = error
 
     return (P + I + D)
@@ -109,7 +110,12 @@ if __name__=='__main__':
         if out <= 0.05 and out >= -0.05:
             out = 0.0
 
-        # Publish error and motor_input, we handle the error as a topic in order to able to plot it
+        msgRobot.linear.x = 2
+        msgRobot.angular.z = 1000
+
+        # Publish error, motor_input, and velocity for gazebo
+        # We handle the error as a topic in order to able to plot it
         error_pub.publish(error)
         input_pub.publish(out)
+        cmd_vel.publish(msgRobot)
         rate.sleep()
