@@ -3,6 +3,7 @@ import rospy
 from getkey import getkey, keys
 
 if __name__ == '__main__':
+    # Initialize the node 'key_manager' at 100 Hz
     rospy.init_node("key_manager")
     rate = rospy.Rate(100)
 
@@ -10,6 +11,7 @@ if __name__ == '__main__':
     print("-- Key Manager --")
 
     while not rospy.is_shutdown():
+        # Get the current key being pressed, due to this we handle this as it's own node, as it is able to run simultaniously
         key = getkey()
 
         # UP Amplitude ++
@@ -30,18 +32,19 @@ if __name__ == '__main__':
 
         # Types
         elif key == "a":
-            rospy.set_param("/type", 1.0)
+            rospy.set_param("/type", 1.0) # Step wave
 
         elif key == "s":
-            rospy.set_param("/type", 2.0)
+            rospy.set_param("/type", 2.0) # Square wave
 
         elif key == "d":
-            rospy.set_param("/type", 3.0)
+            rospy.set_param("/type", 3.0) # Sine wave
 
 
         else:
             buffer += key
         
+        # Print and log the data
         print("Amplitude:")
         print(rospy.get_param("/Amplitude", "..."))
         print("Period:")

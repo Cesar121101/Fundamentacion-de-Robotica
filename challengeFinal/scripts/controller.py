@@ -4,16 +4,14 @@ import numpy as np
 from challengeFinal.msg import set_point
 from std_msgs.msg import Float32
 
-#Setup parameters, vriables and callback functions here (if required)
+#Setup parameters, variables and callback functions here (if required)
 setpoint = set_point()
-#out = motor_input()
 out = 0.0
 superError = 0.0
 currentTime = 0.0
 prevTime = 0.0
 prevError = 0.0
 errorGlob = 0.0
-#motorOut = motor_output()
 motorOut = 0.0
 
 # PID function 
@@ -42,14 +40,16 @@ def PID(error):
 
     return (P + I + D)
     
-
+# This function handles the info inside of the 'set_point' topic
 def set_point_callback(msg):
     rospy.loginfo("Setpoint: %s", msg.setpoint)
 
+    # The setpoint msg has 2 parts a value (setpoint) and a type (type) which corresponds to either Step, Square and Sine
     global setpoint
     setpoint.setpoint = msg.setpoint
     setpoint.type = msg.type
 
+# This function handles the info inside of the 'motor_output' topic
 def motor_output_callback(msg):
     global motorOut
     motorOut = msg.data
@@ -61,7 +61,7 @@ def stop():
 if __name__=='__main__':
     print("The Controller is Running")
 
-    #Initialise and Setup node
+    #Initialise and Setup node at 100Hz
     rospy.init_node("controller")
     rate = rospy.Rate(100)
     rospy.on_shutdown(stop)
@@ -81,7 +81,7 @@ if __name__=='__main__':
         currentTime = rospy.get_time()
 
         error = setpoint.setpoint - motorOut
-        out = PID(error)/30
+        out = PID(error)/30 # 1/30 is our k to account for an amplification
 
         # Log info about Controller
         if setpoint.type == 1.0:
@@ -91,22 +91,23 @@ if __name__=='__main__':
         else:
             rospy.loginfo("Type Input: Sine")
 
+        # Print to terminal the setpoint, the motor output, the error and the motor input which is the real value that gets sent to the PWM
         rospy.loginfo("Input Value: %s", setpoint.setpoint)
-        
         rospy.loginfo("Motor output: %s", motorOut)
         rospy.loginfo("Error: %s", error)
         rospy.loginfo("Motor input: %s", out)
 
-        # Speed regulation
+        # Speed regulation to prevent data over 1 or under -1
         if out > 1.0:
             out = 1.0
         elif out < -1.0:
             out = -1.0
 
+        # Handle friction and minimal output, for when the motor can't overpower friction
         if out <= 0.05 and out >= -0.05:
             out = 0.0
 
-        # Publish error and motor_input
+        # Publish error and motor_input, we handle the error as a topic in order to able to plot it
         error_pub.publish(error)
         input_pub.publish(out)
         rate.sleep()
