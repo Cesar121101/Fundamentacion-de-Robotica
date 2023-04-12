@@ -1,4 +1,6 @@
-Kp : 0.001154
-Ki : 0.7691
-Kd : 0.00003125
-Setpoint : 0
+Kp : 0.018
+Ki : 1.756
+Kd : 0.0
+type: 1.0
+Period: 5.0
+Amplitude : 0.0

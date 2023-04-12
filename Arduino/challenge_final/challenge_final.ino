@@ -22,12 +22,24 @@ volatile int count = 0;
 //Variable para guardar el valor que recibimos del nodo input
 int value;
 
-#define readA bitRead(PIND,2)//faster than digitalRead()
-#define readB bitRead(PIND,3)//faster than digitalRead()
+// New CODE
+#define ENC_COUNT_REV 455
+
+
+// Define variables
+float roc = 0;
+
+long previousMillis = 0;
+long currentMillis = 0;
+
+int interval = 10;
+
+#define readA bitRead(PIND,2)
+#define readB bitRead(PIND,3)
 
 //Funcion callback para la subscripcion
 void input_callback(const std_msgs::Float32 &msg){
-  value = msg.data;
+  value = msg.data*255;
 }
 
 //Creamos el nodo 
@@ -44,32 +56,53 @@ ros::Publisher motor_output("motor_output", &pwm_signal);
 //Iniciamos el nodo, nos subscribimos al topico cmd_pwm e inicializamos los pines del puente H
 void setup() {
 
+  // Pins for encoders
   pinMode(encoderA, INPUT_PULLUP);
   pinMode(encoderB, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(encoderA), ACallback, FALLING);
-  attachInterrupt(digitalPinToInterrupt(encoderB), BCallback, FALLING);
+
+  attachInterrupt(digitalPinToInterrupt(encoderA), ACallback, RISING);
+  attachInterrupt(digitalPinToInterrupt(encoderB), BCallback, RISING);
+
+  // Node config
   motor.initNode();
   motor.advertise(motor_output);
+
+  // Motor pins config
   pinMode(Enable, OUTPUT);
   pinMode(Izquierda, OUTPUT);
   pinMode(Derecha, OUTPUT);
+
   motor.subscribe(input_sub);
   analogWrite(Enable, 255);
 }
 
 void loop() {
-
+  // Count updated using interrupts
   noInterrupts();
   protectedCount = count;
   interrupts();
-  
-  if(protectedCount != previousCount) {
-    velocidad = (protectedCount - previousCount)/0.1;
-    pwm_signal.data = velocidad;
+
+  currentMillis = millis();
+
+  // Period of time "interval"
+  if (currentMillis - previousMillis > interval) {
+    
+    previousMillis = currentMillis;
+
+    // Calculate Rate of change
+    roc = (float)((protectedCount-previousCount)/(interval));
+
+    // Message creation
+    pwm_signal.data = roc * 2 * 3.1416;
+    if(pwm_signal.data > 30.0){
+      pwm_signal.data = 30.0;      
+    } else if(pwm_signal.data < -30.0){
+      pwm_signal.data = -30.0;
+    }
+
+    previousCount = protectedCount;
+    protectedCount = 0;
   }
-
-  previousCount = protectedCount;
-
   
   //Asignamos el valor que recibimos en callback hacia la variable que publicamos de regreso
   //pwm_signal.data = value;
@@ -91,6 +124,7 @@ void loop() {
   //delay(5);
 }
 
+// A and B Callback functions for 2 disks
 void ACallback(){
   if(readB != readA) {
     count --;

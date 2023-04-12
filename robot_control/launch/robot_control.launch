@@ -1,0 +1,9 @@
+<?xml version="1.0" ?>
+<launch>
+
+    <rosparam file = "$(find challengeFinal)/config/control_params.yaml" command = "load"  />
+
+    <node name="controller" pkg="robot_control" type="controller.py" output="screen" launch-prefix="gnome-terminal --command"/>
+    <node name="rqt_plot" pkg="rqt_plot" type="rqt_plot" output="screen"  args="/motor_input/data /error/data"/>
+
+</launch>
