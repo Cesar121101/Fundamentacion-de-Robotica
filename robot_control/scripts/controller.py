@@ -16,6 +16,8 @@ msgRobot = Twist()
 r = 0.05
 l = 0.18
 distance = 2
+startTime = 0.0
+isFinished = 0
 
 # PID function 
 def PID(error):
@@ -53,7 +55,7 @@ def stop():
 
 if __name__=='__main__':
     print("The Controller is Running")
-
+    
     #Initialise and Setup node at 100Hz
     rospy.init_node("controller")
     rate = rospy.Rate(100)
@@ -66,15 +68,30 @@ if __name__=='__main__':
     cmd_vel = rospy.Publisher("cmd_vel", Twist, queue_size=1)
 
     #Set the current time
-    currentTime = rospy.get_time()
+    startTime = rospy.get_time()
 
     #Run the node
     while not rospy.is_shutdown():
         prevTime = currentTime
         currentTime = rospy.get_time()
 
-        error = distance - msgRobot.linear.x
-        out = PID(error)
+        # error = distance - msgRobot.linear.x
+        # out = PID(error)
+
+        dt = currentTime-startTime
+
+        d_sim = msgRobot.linear.x*dt
+        omega_sim = r*(msgRobot.angular.z/l)*dt
+        error = distance - d_sim
+
+        if error > 0 and isFinished == 0:
+            msgRobot.linear.x = 1
+        else:
+            msgRobot.linear.x = 0
+            isFinished = 1
+
+        #msgRobot.linear.x = out
+        msgRobot.angular.z = 0
 
         # Print to terminal the setpoint, the motor output, the error and the motor input which is the real value that gets sent to the PWM
         # rospy.loginfo("Input Value: %s", setpoint.setpoint)
@@ -92,18 +109,6 @@ if __name__=='__main__':
         # Handle friction and minimal output, for when the motor can't overpower friction
         # if out <= 0.05 and out >= -0.05:
         #     out = 0.0
-
-        dt = currentTime-prevTime
-
-        d_sim = msgRobot.linear.x*dt
-        omega_sim = msgRobot.angular.z*dt
-
-        if error > 0:
-            msgRobot.linear.x = out
-        else:
-            msgRobot.linear.x = 0
-       
-        msgRobot.angular.z = 0
 
         # Publish error, motor_input, and velocity for gazebo
         # We handle the error as a topic in order to able to plot it
