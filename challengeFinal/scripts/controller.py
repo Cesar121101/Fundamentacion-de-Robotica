@@ -43,16 +43,14 @@ def PID(error):
     
 
 def set_point_callback(msg):
-    rospy.loginfo("Setpoint: %s", msg.setpoint)
+    #rospy.loginfo("Setpoint: %s", msg.setpoint)
 
     global setpoint
     setpoint = msg.setpoint
 
 def motor_output_callback(msg):
     global motorOut
-    motorOut.output = msg.output
-    motorOut.time = msg.time
-    motorOut.status = msg.status
+    motorOut.output = msg.data
 
 #Stop Condition
 def stop():
@@ -68,7 +66,7 @@ if __name__=='__main__':
 
     #Setup Publishers and subscribers here
     rospy.Subscriber("set_point", set_point, set_point_callback)
-    rospy.Subscriber("motor_output", motor_output, motor_output_callback)
+    rospy.Subscriber("motor_output", Float32 , motor_output_callback)
     input_pub = rospy.Publisher("motor_input", Float32 , queue_size=1)
     #error_pub = rospy.Publisher("error", Float32 , queue_size=1) 
 
@@ -84,9 +82,10 @@ if __name__=='__main__':
         #out.time = motorOut.time
 
         rospy.loginfo("Motor output: %s", motorOut.output)
+        '''
         rospy.loginfo("Error: %s", error)
         rospy.loginfo("Motor input: %s", out)
-
+        '''
         # Publish error and motor_input
         #error_pub.publish(error)
         input_pub.publish(out)

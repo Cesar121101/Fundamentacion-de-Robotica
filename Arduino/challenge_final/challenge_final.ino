@@ -12,6 +12,8 @@ int encoderA = 2;
 int encoderB = 3;
 float protectedCount = 0;
 float previousCount = 0;
+float previousCountTwo = 0;
+float velocidad = 0.0;
 
 
 // Contador
@@ -45,6 +47,7 @@ void setup() {
   pinMode(encoderA, INPUT_PULLUP);
   pinMode(encoderB, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(encoderA), ACallback, FALLING);
+  attachInterrupt(digitalPinToInterrupt(encoderB), BCallback, FALLING);
   motor.initNode();
   motor.advertise(motor_output);
   pinMode(Enable, OUTPUT);
@@ -55,15 +58,18 @@ void setup() {
 }
 
 void loop() {
-  
+
   noInterrupts();
   protectedCount = count;
   interrupts();
   
   if(protectedCount != previousCount) {
-    pwm_signal.data = protectedCount;
+    velocidad = (protectedCount - previousCount)/0.1;
+    pwm_signal.data = velocidad;
   }
+
   previousCount = protectedCount;
+
   
   //Asignamos el valor que recibimos en callback hacia la variable que publicamos de regreso
   //pwm_signal.data = value;
