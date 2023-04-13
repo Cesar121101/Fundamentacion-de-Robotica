@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import rospy
+import math
 import numpy as np
 from std_msgs.msg import Float32
 from geometry_msgs.msg import Twist
@@ -15,9 +16,12 @@ motorOut = 0.0
 msgRobot = Twist()
 r = 0.05
 l = 0.18
-distance = 2
+distance = 0
+rotation = 1
 startTime = 0.0
 isFinished = 0
+isFinishedR = 0
+points = [(2.0,2.0), (0.0,2.0),(0.0,0.0)]
 
 # PID function 
 def PID(error):
@@ -70,10 +74,45 @@ if __name__=='__main__':
     #Set the current time
     startTime = rospy.get_time()
 
+    # Manages which point we will focus on
+    point = 0
+
+    # Calculates distances and angles between all of them
+    commands = []
+    #commands.append((0.0, 1))
+    # Hardcoded values to make a square
+    commands.append((2.0, 0.0)) # Move 2 m
+    commands.append((0.0, 0.5)) # Turn 90 deg, 360 deg aprox 2, 90 aprox 0.5
+    commands.append((2.0, 0.0)) # ...
+    commands.append((0.0, 0.5))
+    commands.append((2.0, 0.0))
+    commands.append((0.0, 0.5))
+    commands.append((2.0, 0.0))
+    commands.append((0.0, 0.5))
+    #commands.append((0.0, 0.5))
+    # Future code to create a similar list of points but for given points
+    #for i in range(len(points)):
+        # Distance
+    #    x = points[i+1][0] - points[i][0]
+    #    y = points[i+1][1] - points[i][1]
+    #    dist = math.sqrt(x*x+y*y)
+
+        # Rotation
+        # For square is always 0.5
+    #    commands.append((dist, 0.5))
+
     #Run the node
     while not rospy.is_shutdown():
-        prevTime = currentTime
+
+        #prevTime = currentTime
         currentTime = rospy.get_time()
+
+        # Get the working Distance and Rotation for each command (point)
+        distance = commands[point][0]
+        rotation = commands[point][1]
+        print ("DISTANCE: " + str(distance))
+        print ("ROTATION: " + str(rotation))
+        print ("POINT: " + str(point))
 
         # error = distance - msgRobot.linear.x
         # out = PID(error)
@@ -82,16 +121,41 @@ if __name__=='__main__':
 
         d_sim = msgRobot.linear.x*dt
         omega_sim = r*(msgRobot.angular.z/l)*dt
+        print("OMEGASIM:" + str(omega_sim))
         error = distance - d_sim
-
-        if error > 0 and isFinished == 0:
-            msgRobot.linear.x = 1
+        errorR = rotation - omega_sim
+        #msgRobot.linear.x = 1
+            # Restart parameters
+            #point += 1
+            #startTime = rospy.get_time()
+        
+        # Handle rotations first (one must be first to get straight lines, or else we get curves)
+        if errorR > 0 and isFinishedR == 0:
+            msgRobot.angular.z = 0.5
+            msgRobot.linear.x = 0
         else:
             msgRobot.linear.x = 0
-            isFinished = 1
+            msgRobot.angular.z = 0
+            isFinishedR = 1
+            
+            # Handle translation
+            if error > 0 and isFinished == 0:
+                msgRobot.linear.x = 1
+                msgRobot.angular.z = 0
+            else:
+                msgRobot.linear.x = 0
+                msgRobot.angular.z = 0
+                isFinished = 1
+                # Restart parameters
+                point += 1
+                startTime = rospy.get_time()
+                isFinished = 0
+                isFinishedR = 0
 
-        #msgRobot.linear.x = out
-        msgRobot.angular.z = 0
+        
+
+        #msgRobot.linear.x = 
+        #msgRobot.angular.z = 0
 
         # Print to terminal the setpoint, the motor output, the error and the motor input which is the real value that gets sent to the PWM
         # rospy.loginfo("Input Value: %s", setpoint.setpoint)
