@@ -13,6 +13,7 @@ prevTime = 0.0
 prevError = 0.0
 errorGlob = 0.0
 motorOut = 0.0
+startTime = 0.0
 msgRobot = Twist()
 r = 0.05
 l = 0.18
@@ -71,6 +72,11 @@ if __name__=='__main__':
     error_pub = rospy.Publisher("error", Float32 , queue_size=1) 
     cmd_vel = rospy.Publisher("cmd_vel", Twist, queue_size=1)
 
+    #Set initial error
+    error = 2
+
+    msgRobot.linear.x = 0
+    rate.sleep()
     #Set the current time
     startTime = rospy.get_time()
 
@@ -159,15 +165,19 @@ if __name__=='__main__':
 
         # Print to terminal the setpoint, the motor output, the error and the motor input which is the real value that gets sent to the PWM
         # rospy.loginfo("Input Value: %s", setpoint.setpoint)
-        rospy.loginfo("Motor output: %s", motorOut)
+        rospy.loginfo("\n")
         rospy.loginfo("Error: %s", error)
-        rospy.loginfo("Motor input: %s", out)
         rospy.loginfo("Linear x: %s", msgRobot.linear.x)
+        rospy.loginfo("Initial time: %s", startTime)
+        rospy.loginfo("Currrent time: %s", currentTime)
+        rospy.loginfo("DT: %s", dt)
+        rospy.loginfo("d_sim: %s", d_sim)
+    
 
         # Speed regulation to prevent data over 1 or under -1
         # if out > 1.0:
         #     out = 1.0
-        # elif out < -1.0:
+        # elif out < -1.0:d_sim
         #     out = -1.0
 
         # Handle friction and minimal output, for when the motor can't overpower friction

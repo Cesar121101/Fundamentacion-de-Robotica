@@ -12,6 +12,8 @@ int encoderA = 2;
 int encoderB = 3;
 float protectedCount = 0;
 float previousCount = 0;
+float previousCountTwo = 0;
+float velocidad = 0.0;
 
 
 // Contador

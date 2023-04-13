@@ -42,7 +42,7 @@ def PID(error):
     
 # This function handles the info inside of the 'set_point' topic
 def set_point_callback(msg):
-    rospy.loginfo("Setpoint: %s", msg.setpoint)
+    #rospy.loginfo("Setpoint: %s", msg.setpoint)
 
     # The setpoint msg has 2 parts a value (setpoint) and a type (type) which corresponds to either Step, Square and Sine
     global setpoint
