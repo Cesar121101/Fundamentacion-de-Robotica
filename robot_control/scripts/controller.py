@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 import rospy
-import math
 import numpy as np
 from std_msgs.msg import Float32
 from geometry_msgs.msg import Twist
@@ -22,32 +21,10 @@ rotation = 1
 startTime = 0.0
 isFinished = 0
 isFinishedR = 0
-points = [(2.0,2.0), (0.0,2.0),(0.0,0.0)]
+# points = [(0.0, 0.0), (2.0,2.0), (0.0,2.0),(0.0,0.0)]
+points = [(0.0, 0.0), (2.0,2.0)]
 
-# PID function 
-def PID(error):
-    global currentTime
-    global prevTime
-    global superError
-    global prevError
-
-    dt = currentTime-prevTime
-    
-    # P
-    Kp = rospy.get_param("/Kp", "No param found")
-    P = Kp*error
-
-    # I
-    superError += error * dt
-    Ki = rospy.get_param("/Ki", "No param found")
-    I = superError*Ki
-
-    # D
-    Kd = rospy.get_param("/Kd", "No param found")
-    D = Kd*((error-prevError)/dt)
-    prevError = error
-
-    return (P + I + D)
+robot_angle = 0.0
 
 # This function handles the info inside of the 'motor_output' topic
 def motor_output_callback(msg):
@@ -85,27 +62,26 @@ if __name__=='__main__':
 
     # Calculates distances and angles between all of them
     commands = []
-    #commands.append((0.0, 1))
-    # Hardcoded values to make a square
-    commands.append((2.0, 0.0)) # Move 2 m
-    commands.append((0.0, 0.5)) # Turn 90 deg, 360 deg aprox 2, 90 aprox 0.5
-    commands.append((2.0, 0.0)) # ...
-    commands.append((0.0, 0.5))
-    commands.append((2.0, 0.0))
-    commands.append((0.0, 0.5))
-    commands.append((2.0, 0.0))
-    commands.append((0.0, 0.5))
-    #commands.append((0.0, 0.5))
-    # Future code to create a similar list of points but for given points
-    #for i in range(len(points)):
-        # Distance
-    #    x = points[i+1][0] - points[i][0]
-    #    y = points[i+1][1] - points[i][1]
-    #    dist = math.sqrt(x*x+y*y)
 
-        # Rotation
-        # For square is always 0.5
-    #    commands.append((dist, 0.5))
+    # --- Hardcoded values to make a square ---
+    # commands.append((2.0, 0.0)) # Move 2 m
+    # commands.append((0.0, 0.5)) # Turn 90 deg, 360 deg aprox 2, 90 aprox 0.5
+    # commands.append((2.0, 0.0)) # ...
+    # commands.append((0.0, 0.5))
+    # commands.append((2.0, 0.0))
+    # commands.append((0.0, 0.5))
+    # commands.append((2.0, 0.0))
+    # commands.append((0.0, 0.5))
+
+    # --- Follow a set of points ---
+    for i in range(len(points)-1):
+        # Distance
+       x = points[i+1][0] - points[i][0]
+       y = points[i+1][1] - points[i][1]
+       dist = np.sqrt(x*x+y*y)
+       angle = np.arctan(y/x)
+       commands.append((0.0, angle))
+       commands.append((dist, 0.0))
 
     #Run the node
     while not rospy.is_shutdown():
@@ -120,9 +96,6 @@ if __name__=='__main__':
         print ("ROTATION: " + str(rotation))
         print ("POINT: " + str(point))
 
-        # error = distance - msgRobot.linear.x
-        # out = PID(error)
-
         dt = currentTime-startTime
 
         d_sim = msgRobot.linear.x*dt
@@ -130,10 +103,6 @@ if __name__=='__main__':
         print("OMEGASIM:" + str(omega_sim))
         error = distance - d_sim
         errorR = rotation - omega_sim
-        #msgRobot.linear.x = 1
-            # Restart parameters
-            #point += 1
-            #startTime = rospy.get_time()
         
         # Handle rotations first (one must be first to get straight lines, or else we get curves)
         if errorR > 0 and isFinishedR == 0:
@@ -157,15 +126,12 @@ if __name__=='__main__':
                 startTime = rospy.get_time()
                 isFinished = 0
                 isFinishedR = 0
-
-        
-
-        #msgRobot.linear.x = 
-        #msgRobot.angular.z = 0
+                robot_angle += rotation
 
         # Print to terminal the setpoint, the motor output, the error and the motor input which is the real value that gets sent to the PWM
         # rospy.loginfo("Input Value: %s", setpoint.setpoint)
         rospy.loginfo("\n")
+        rospy.loginfo("Angle: %s", angle)
         rospy.loginfo("Error: %s", error)
         rospy.loginfo("Linear x: %s", msgRobot.linear.x)
         rospy.loginfo("Initial time: %s", startTime)
