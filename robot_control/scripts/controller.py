@@ -14,26 +14,52 @@ l = 0.18
 distance = 0
 rotation = 0
 startTime = 0.0
-commands = []
+commands = [(0.0, 0.0)]
 isPoints = False
-
+velocity = 0.0
+error = 0.0
+robot_angle = 0.0
 # points = [(0.0, 0.0), (2.0,2.0), (0.0,2.0),(0.0,0.0)]
 points = [(0.0, 0.0), (2.0,2.0)]
 
-robot_angle = 0.0
-
+# Make square points
 def calculate_points():
+    # Get global variables
     global isPoints
+    global velocity
 
-    # --- Hardcoded values to make a square ---
-    commands.append((2.0, 0.0)) # Move 2 m
-    commands.append((0.0, 0.5)) # Turn 90 deg, 360 deg aprox 2, 90 aprox 0.5
-    commands.append((2.0, 0.0)) # ...
-    commands.append((0.0, 0.5))
-    commands.append((2.0, 0.0))
-    commands.append((0.0, 0.5))
-    commands.append((2.0, 0.0))
-    commands.append((0.0, 0.5))
+    # If the user defined the distance
+    if user_dist > 0.0 and user_time == 0.0:
+        # Make a square with the distance of the user
+        commands.append((float(user_dist), 0.0)) # Move 
+        commands.append((0.0, 0.5))              # Turn 90 deg
+        commands.append((float(user_dist), 0.0)) # ...
+        commands.append((0.0, 0.5))
+        commands.append((float(user_dist), 0.0))
+        commands.append((0.0, 0.5))
+        commands.append((float(user_dist), 0.0))
+        commands.append((0.0, 0.5))
+        velocity = 1.0
+
+    # If the user defined the time
+    else: 
+        # Make a square of 2m
+        commands.append((2.0, 0.0)) # Move 2 m
+        commands.append((0.0, 0.5)) # Turn 90 deg
+        commands.append((2.0, 0.0)) # ...
+        commands.append((0.0, 0.5))
+        commands.append((2.0, 0.0))
+        commands.append((0.0, 0.5))
+        commands.append((2.0, 0.0))
+        commands.append((0.0, 0.5))
+
+        # Calculate the velocity
+        velocity = 8.0/user_time
+
+        # If the velocity exceeds the max velocity
+        if velocity > 1:
+            velocity = 1
+
     isPoints = True
 
 # This function handles the info inside of the 'motor_output' topic
@@ -53,19 +79,10 @@ if __name__=='__main__':
     rate = rospy.Rate(100)
     rospy.on_shutdown(stop)
 
-    # Setup Publishers and subscribers
+    # Setup Publishers
     input_pub = rospy.Publisher("motor_input", Float32 , queue_size=1)
     error_pub = rospy.Publisher("error", Float32 , queue_size=1) 
     cmd_vel = rospy.Publisher("cmd_vel", Twist, queue_size=1)
-
-    # Get global parameters
-    user_dist = rospy.get_param("/user_dist", "No param found")
-    user_time = rospy.get_param("/user_time", "No param found")
-
-    # Set initial error
-    error = user_dist
-    msgRobot.linear.x = 0
-    rate.sleep()
 
     # Set the current time
     startTime = rospy.get_time()
@@ -83,34 +100,40 @@ if __name__=='__main__':
     #Run the node
     while not rospy.is_shutdown():
 
+        # Get global parameters
         user_finish = rospy.get_param("/user_finish", "No param found")
+        user_dist = rospy.get_param("/user_dist", "No param found")
+        user_time = rospy.get_param("/user_time", "No param found")
 
+        # If the user already define the distance or time
         if user_finish == 1.0 and isPoints == False:
-            calculate_points()
-            isPoints = True
-            point = 0   # Manages which point we will focus on
+            calculate_points()      # Calculate the points
+            isPoints = True         # Flag to calculate only one time
+            point = 0               # Manages which point we will focus on
+            error = user_dist       # Set initial error
+            msgRobot.linear.x = 0   # Set initial velocity
+            rate.sleep()            # Time for all the variables to change
 
+        # If the calculated points exists
         if isPoints:
-            currentTime = rospy.get_time()
-            isFinished = False
-            isFinishedR = False
+            currentTime = rospy.get_time()  # Obtain the time
+            isFinished = False              # Flag of finish traslation
+            isFinishedR = False             # Flag of finish rotation
 
             # Get the working Distance and Rotation for each command (point)
             distance = commands[point][0]
             rotation = commands[point][1]
-            print ("DISTANCE: " + str(distance))
-            print ("ROTATION: " + str(rotation))
-            print ("POINT: " + str(point))
+            # print ("DISTANCE: " + str(distance))
+            # print ("ROTATION: " + str(rotation))
+            # print ("POINT: " + str(point))
 
             dt = currentTime-startTime
 
             d_sim = msgRobot.linear.x*dt
             omega_sim = r*(msgRobot.angular.z/l)*dt
-            print("OMEGASIM:" + str(omega_sim))
+            #print("OMEGASIM:" + str(omega_sim))
             error = distance - d_sim
             errorR = rotation - omega_sim
-            print("Error: " + str(error))
-            print("Error Rotation: " + str(errorR))
             
             # Handle rotations first (one must be first to get straight lines, or else we get curves)
             if errorR > 0 and isFinishedR == False:
@@ -123,7 +146,7 @@ if __name__=='__main__':
                 
                 # Handle translation
                 if error > 0 and isFinished == False and isFinishedR == True:
-                    msgRobot.linear.x = 1
+                    msgRobot.linear.x = velocity
                     msgRobot.angular.z = 0
                 else:
                     msgRobot.linear.x = 0
