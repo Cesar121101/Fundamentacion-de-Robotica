@@ -16,29 +16,30 @@ if __name__ == '__main__':
         if selection == False:
 
             # The user choose square or points
-            type = input("Choose 0 for square or 1 for points")
+            print("Choose 0 for square or 1 for points: ")
+            type = input("Your choice: ")
             rospy.set_param("/type", type)
 
             # If the user wants square
             if type == 0:
                 # The user choose to define distance of time
-                print("Choose 0 to set the distance or 1 to set the time")
+                print("\nChoose 0 to set the distance or 1 to set the time")
                 var = input("Your choice: ")
 
                 # If the user wants to define distance
                 if var == 0:
-                    user_dist = input("Write the distance: ") # Get distance from user
+                    user_dist = input("\nWrite the distance: ") # Get distance from user
                     rospy.set_param("/user_dist", user_dist) # Set the distance
                     selection = True # The user already set a value
 
                 elif var == 1:
-                    user_time = input("Write the time: ") # Get time from user
+                    user_time = input("\nWrite the time: ") # Get time from user
                     rospy.set_param("/user_time", user_time) # Set the time
                     selection = True # The user already set a value
             
             # If the user wants points
             elif type == 1:
-                num_points = input("How many points do you want to set: ")
+                num_points = input("\nHow many points do you want to set: ")
                 points = rospy.get_param("/points", "No param found")
                 for i in range(num_points):
                     print("Write the point %s", i)
@@ -56,7 +57,7 @@ if __name__ == '__main__':
             print("User time: %s", rospy.get_param("/user_time", "No param found"))
 
             # Ask the user if he/she wants to provide another selection
-            print("Do you want to make another selection? 0 for Yes, 1 for No")
+            print("\n\nHave you finish setting the parameters? 0 for No, 1 for Yes")
             another = input("Your choice: ")
 
             # If the user wants to provide another selection

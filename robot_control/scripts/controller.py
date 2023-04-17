@@ -25,6 +25,9 @@ currentPoint = 0
 vectorL = 1
 type = 0
 commands = [(0, 0)]
+user_finish = 0
+user_dist = 0
+user_time = 0
 
 # Make square points
 def calculate_points():
@@ -32,6 +35,9 @@ def calculate_points():
     global isPoints
     global velocity
     global type
+
+    global user_dist
+    global user_time
 
     # If the user decide a square
     if type == 0:
