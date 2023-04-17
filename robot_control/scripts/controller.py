@@ -203,7 +203,7 @@ if __name__=='__main__':
             omega_sim = r*(msgRobot.angular.z/l)*dt
             ##print("OMEGASIM:" + str(omega_sim))
             #print("DSIM: "+ str(d_sim))
-        error = distance - d_sim
+            error = distance - d_sim
             errorR = rotation - omega_sim
             
             # Handle rotations first (one must be first to get straight lines, or else we get curves)
