@@ -20,48 +20,108 @@ velocity = 0.0
 error = 0.0
 robot_angle = 0.0
 # points = [(0.0, 0.0), (2.0,2.0), (0.0,2.0),(0.0,0.0)]
-points = [(0.0, 0.0),(4.0,0.0),(4.0, 2.0), (2.0,2.0), (2.0,4.0), (0.0, 4.0), (0.0,0.0),]
+# points = [(0.0, 0.0),(4.0,0.0),(4.0, 2.0), (2.0,2.0), (2.0,4.0), (0.0, 4.0), (0.0,0.0),]
 currentPoint = 0
 vectorL = 1
+type = 0
+commands = [(0, 0)]
 
 # Make square points
 def calculate_points():
     # Get global variables
     global isPoints
     global velocity
+    global type
 
-    # If the user defined the distance
-    if user_dist > 0.0 and user_time == 0.0:
-        # Make a square with the distance of the user
-        commands.append((float(user_dist), 0.0)) # Move 
-        commands.append((0.0, 0.5))              # Turn 90 deg
-        commands.append((float(user_dist), 0.0)) # ...
-        commands.append((0.0, 0.5))
-        commands.append((float(user_dist), 0.0))
-        commands.append((0.0, 0.5))
-        commands.append((float(user_dist), 0.0))
-        commands.append((0.0, 0.5))
-        velocity = 1.0
+    # If the user decide a square
+    if type == 0:
+        # If the user defined the distance
+        if user_dist > 0.0 and float(user_time) == 0.0:
+            # Make a square with the distance of the user
+            commands.append((float(user_dist), 0.0)) # Move 
+            commands.append((0.0, 0.5))              # Turn 90 deg
+            commands.append((float(user_dist), 0.0)) # ...
+            commands.append((0.0, 0.5))
+            commands.append((float(user_dist), 0.0))
+            commands.append((0.0, 0.5))
+            commands.append((float(user_dist), 0.0))
+            commands.append((0.0, 0.5))
+            velocity = 1.0
 
-    # If the user defined the time
-    else: 
-        # Make a square of 2m
-        commands.append((2.0, 0.0)) # Move 2 m
-        commands.append((0.0, 0.5)) # Turn 90 deg
-        commands.append((2.0, 0.0)) # ...
-        commands.append((0.0, 0.5))
-        commands.append((2.0, 0.0))
-        commands.append((0.0, 0.5))
-        commands.append((2.0, 0.0))
-        commands.append((0.0, 0.5))
+        # If the user defined the time
+        else: 
+            # Make a square of 2m
+            commands.append((2.0, 0.0)) # Move 2 m
+            commands.append((0.0, 0.5)) # Turn 90 deg
+            commands.append((2.0, 0.0)) # ...
+            commands.append((0.0, 0.5))
+            commands.append((2.0, 0.0))
+            commands.append((0.0, 0.5))
+            commands.append((2.0, 0.0))
+            commands.append((0.0, 0.5))
 
-        # Calculate the velocity
-        velocity = 8.0/user_time
+            # Calculate the velocity
+            velocity = 8.0/float(user_time)
 
-        # If the velocity exceeds the max velocity
-        if velocity > 1:
-            velocity = 1
+            # If the velocity exceeds the max velocity
+            if velocity > 1:
+                velocity = 1
 
+    # If the user decide points
+    elif type == 1:
+        print("POINTS")
+        points = rospy.get_param("/points", "No param found")
+        print(points)
+
+        # --- Follow a set of points ---
+        for i in range(len(points)-1):
+            # Distance
+            distx = points[i+1][0] - points[i][0]
+            disty = points[i+1][1] - points[i][1]
+            b = np.sqrt(distx*distx+disty*disty)
+
+            robotx = points[i][0]
+            roboty = points[i][1]
+
+            newpointx = vectorL*np.cos(robot_angle) + robotx
+            newpointy = vectorL*np.sin(robot_angle) + roboty
+
+            print("New point: x(" + str(newpointx) + "), y(" + str(newpointy)+ ")")
+
+            distx2 = newpointx-points[i+1][0]
+            disty2 = newpointy-points[i+1][1]
+            a = np.sqrt(distx2*distx2 + disty2*disty2)
+
+            print("a: "+str(a))
+            c = vectorL
+            print("c: " + str(c))
+            print("b: " + str(b))
+
+            op = (b*b+c*c-a*a)/(2*b*c)
+            angle = np.arccos(op)
+            print("angle: "+ str(angle))
+            print("robotangle: "+str(robot_angle))
+
+            # Check which side to choose
+            testPointX = b*np.cos(robot_angle)*np.cos(angle) - b*vectorL*np.sin(robot_angle)*np.sin(angle) + robotx
+            testPointY = b*np.cos(robot_angle)*np.sin(angle) + b*vectorL*np.sin(robot_angle)*np.cos(angle) + roboty
+
+            print("Test point: x(" + str(testPointX) + "), y(" + str(testPointY)+ ")")
+
+            if (testPointX < points[i+1][0]+1 and testPointX > points[i+1][0]-1 )and (testPointY < points[i+1][1]+1 and testPointY > points[i+1][1]-1):
+                print("First try :)")      
+            else:
+                print("Not right one")
+                angle = 2*np.pi-angle
+                
+            commands.append((0.0, ((angle)/np.pi)))
+            commands.append((b, 0.0))
+            print("Sent Angle: " + str(angle/np.pi))
+            print("Sent Distance: " + str(b))
+            print("")
+            robot_angle += angle
+
+            print(commands)
     isPoints = True
 
 # This function handles the info inside of the 'motor_output' topic
@@ -89,84 +149,6 @@ if __name__=='__main__':
     # Set the current time
     startTime = rospy.get_time()
 
-    # Manages which point we will focus on
-    point = 0
-
-    # Calculates distances and angles between all of them
-    commands = []
-
-    # --- Hardcoded values to make a square ---
-    # commands.append((2.0, 0.0)) # Move 2 m
-    # commands.append((0.0, 0.5)) # Turn 90 deg, 360 deg aprox 2, 90 aprox 0.5
-    # commands.append((2.0, 0.0)) # ...
-    # commands.append((0.0, 0.5))
-    # commands.append((2.0, 0.0))
-    # commands.append((0.0, 0.5))
-    # commands.append((2.0, 0.0))
-    # commands.append((0.0, 0.5))
-
-    print("POINTS")
-    # --- Follow a set of points ---
-    for i in range(len(points)-1):
-        # Distance
-        distx = points[i+1][0] - points[i][0]
-        disty = points[i+1][1] - points[i][1]
-        b = np.sqrt(distx*distx+disty*disty)
-
-        robotx = points[i][0]
-        roboty = points[i][1]
-
-        newpointx = vectorL*np.cos(robot_angle) + robotx
-        newpointy = vectorL*np.sin(robot_angle) + roboty
-
-        print("New point: x(" + str(newpointx) + "), y(" + str(newpointy)+ ")")
-
-        distx2 = newpointx-points[i+1][0]
-        disty2 = newpointy-points[i+1][1]
-        a = np.sqrt(distx2*distx2 + disty2*disty2)
-
-        print("a: "+str(a))
-        c = vectorL
-        print("c: " + str(c))
-        print("b: " + str(b))
-
-        op = (b*b+c*c-a*a)/(2*b*c)
-        angle = np.arccos(op)
-        print("angle: "+ str(angle))
-        print("robotangle: "+str(robot_angle))
-
-        # Check which side to choose
-        testPointX = b*np.cos(robot_angle)*np.cos(angle) - b*vectorL*np.sin(robot_angle)*np.sin(angle) + robotx
-        testPointY = b*np.cos(robot_angle)*np.sin(angle) + b*vectorL*np.sin(robot_angle)*np.cos(angle) + roboty
-
-        print("Test point: x(" + str(testPointX) + "), y(" + str(testPointY)+ ")")
-
-        if (testPointX < points[i+1][0]+1 and testPointX > points[i+1][0]-1 )and (testPointY < points[i+1][1]+1 and testPointY > points[i+1][1]-1):
-            print("First try :)")
-            
-            
-        else:
-            print("Not right one")
-            angle = 2*np.pi-angle
-            
-    
-        commands.append((0.0, ((angle)/np.pi)))
-        commands.append((b, 0.0))
-        print("Sent Angle: " + str(angle/np.pi))
-        print("Sent Distance: " + str(b))
-        print("")
-        robot_angle += angle
-
-    print(commands)
-    # for i in range(len(points)-1):
-    #     # Distance
-    #    x = points[i+1][0] - points[i][0]
-    #    y = points[i+1][1] - points[i][1]
-    #    dist = np.sqrt(x*x+y*y)
-    #    angle = np.arctan(y/x)
-    #    commands.append((0.0, angle))
-    #    commands.append((dist, 0.0))
-
     #Run the node
     while not rospy.is_shutdown():
 
@@ -177,6 +159,7 @@ if __name__=='__main__':
 
         # If the user already define the distance or time
         if user_finish == 1.0 and isPoints == False:
+            type = rospy.get_param("/type", "No param found")
             calculate_points()      # Calculate the points
             isPoints = True         # Flag to calculate only one time
             point = 0               # Manages which point we will focus on
@@ -193,16 +176,11 @@ if __name__=='__main__':
             # Get the working Distance and Rotation for each command (point)
             distance = commands[point][0]
             rotation = commands[point][1]
-            # #print ("DISTANCE: " + str(distance))
-            # #print ("ROTATION: " + str(rotation))
-            # #print ("POINT: " + str(point))
 
             dt = currentTime-startTime
 
             d_sim = msgRobot.linear.x*dt
             omega_sim = r*(msgRobot.angular.z/l)*dt
-            ##print("OMEGASIM:" + str(omega_sim))
-            #print("DSIM: "+ str(d_sim))
             error = distance - d_sim
             errorR = rotation - omega_sim
             
