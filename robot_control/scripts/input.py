@@ -18,7 +18,7 @@ if __name__ == '__main__':
             # The user choose square or points
             print("Choose 0 for square or 1 for points: ")
             type = input("Your choice: ")
-            rospy.set_param("/type", type)
+            rospy.set_param("/type", int(type))
 
             # If the user wants square
             if type == 0:
@@ -29,12 +29,12 @@ if __name__ == '__main__':
                 # If the user wants to define distance
                 if var == 0:
                     user_dist = input("\nWrite the distance: ") # Get distance from user
-                    rospy.set_param("/user_dist", user_dist) # Set the distance
+                    rospy.set_param("/user_dist", float(user_dist)) # Set the distance
                     selection = True # The user already set a value
 
                 elif var == 1:
                     user_time = input("\nWrite the time: ") # Get time from user
-                    rospy.set_param("/user_time", user_time) # Set the time
+                    rospy.set_param("/user_time", float(user_time)) # Set the time
                     selection = True # The user already set a value
             
             # If the user wants points
