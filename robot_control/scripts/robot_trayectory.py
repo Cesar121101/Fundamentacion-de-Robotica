@@ -31,6 +31,68 @@ user_time = 0
 type = 0
 points = []
 
+def get_inputs():
+    # global variables
+    global user_finish
+    global user_dist
+    global user_time
+    global type
+    global points
+    selection = False   # To know if a selection was made
+
+    print("-- User input --")
+
+    while (selection == False):
+        # The user choose square or points
+        print("Choose 0 for square or 1 for points: ")
+        type = input("Your choice: ")
+        type = int(type)
+
+        # If the user wants square
+        if type == 0:
+            # The user choose to define distance of time
+            print("\nChoose 0 to set the distance or 1 to set the time")
+            var = input("Your choice: ")
+
+            # If the user wants to define distance
+            if var == 0:
+                user_dist = input("\nWrite the distance: ") # Get distance from user
+                user_dist = float(user_dist) # Set the distance
+                selection = True # The user already set a value
+
+            elif var == 1:
+                user_time = input("\nWrite the time: ") # Get time from user
+                user_time = float(user_time) # Set the time
+                selection = True # The user already set a value
+        
+        # If the user wants points
+        elif type == 1:
+            num_points = input("\nHow many points do you want to set: ")
+            for i in range(int(num_points)):
+                print("Write the point %s", i)
+                x = input("X coordinate: ")
+                y = input("Y coordinate: ")
+                points.append((float(x), float(y)))
+            selection = True
+
+        # Validate the value of the parameters
+        print("User distance: %s", user_dist)
+        print("User time: %s", user_time)
+        print("Points: ")
+        print(points)
+
+        # Ask the user if he/she wants to provide another selection
+        print("\n\nHave you finish setting the parameters? 0 for No, 1 for Yes")
+        another = input("Your choice: ")
+
+        # If the user wants to provide another selection
+        if another == 0:
+            selection = False   # Go to the beginning
+
+        # If the user does not want to provide another selection
+        elif another == 1:
+            user_finish = 1.0
+
 # Make square points
 def calculate_points():
     # Get global variables
@@ -40,6 +102,7 @@ def calculate_points():
     global user_dist
     global user_time
     global points
+    global robot_angle
 
     # If the user decide a square
     if type == 0:
@@ -130,6 +193,9 @@ def calculate_points():
             robot_angle += angle
 
             print(commands)
+
+        #set movement to 1
+        velocity = 1
     isPoints = True
 
 # This function handles the info inside of the 'motor_output' topic
@@ -154,60 +220,8 @@ if __name__=='__main__':
     error_pub = rospy.Publisher("error", Float32 , queue_size=1) 
     cmd_vel = rospy.Publisher("cmd_vel", Twist, queue_size=1)
 
-    print("-- User input --")
-
-    selection = False   # To know if a selection was made
-
-    while (selection == False):
-        # The user choose square or points
-        print("Choose 0 for square or 1 for points: ")
-        type = input("Your choice: ")
-        type = int(type)
-
-        # If the user wants square
-        if type == 0:
-            # The user choose to define distance of time
-            print("\nChoose 0 to set the distance or 1 to set the time")
-            var = input("Your choice: ")
-
-            # If the user wants to define distance
-            if var == 0:
-                user_dist = input("\nWrite the distance: ") # Get distance from user
-                user_dist = float(user_dist) # Set the distance
-                selection = True # The user already set a value
-
-            elif var == 1:
-                user_time = input("\nWrite the time: ") # Get time from user
-                user_time = float(user_time) # Set the time
-                selection = True # The user already set a value
-        
-        # If the user wants points
-        elif type == 1:
-            num_points = input("\nHow many points do you want to set: ")
-            for i in range(int(num_points)):
-                print("Write the point %s", i)
-                x = input("X coordinate: ")
-                y = input("Y coordinate: ")
-                points.append[(float(x), float(y))]
-            selection = True
-
-        # Validate the value of the parameters
-        print("User distance: %s", user_dist)
-        print("User time: %s", user_time)
-        print("Points: ")
-        print(points)
-
-        # Ask the user if he/she wants to provide another selection
-        print("\n\nHave you finish setting the parameters? 0 for No, 1 for Yes")
-        another = input("Your choice: ")
-
-        # If the user wants to provide another selection
-        if another == 0:
-            selection = False   # Go to the beginning
-
-        # If the user does not want to provide another selection
-        elif another == 1:
-            user_finish = 1.0
+    # parameters will be set
+    get_inputs()
 
     # Set the current time
     startTime = rospy.get_time()
@@ -238,6 +252,7 @@ if __name__=='__main__':
 
         # If the calculated points exists
         if isPoints:
+            rate.sleep() # make a wait for making sure previous movements had stopped
             currentTime = rospy.get_time()  # Obtain the time
             isFinished = False              # Flag of finish traslation
             isFinishedR = False             # Flag of finish rotation
@@ -257,10 +272,12 @@ if __name__=='__main__':
             if errorR > 0 and isFinishedR == False:
                 msgRobot.angular.z = 0.5
                 msgRobot.linear.x = 0
+                isFinished == True
             else:
                 msgRobot.linear.x = 0
                 msgRobot.angular.z = 0
                 isFinishedR = True
+                isFinished == False
                 
                 # Handle translation
                 if error > 0 and isFinished == False and isFinishedR == True:
@@ -271,34 +288,18 @@ if __name__=='__main__':
                     msgRobot.angular.z = 0
                     isFinished = True
                     # Restart parameters
-                    point += 1
+                    point += 1 # as point is added at the end and our programs runs above first, we'll see a compilation error although robot has finished moving
                     startTime = rospy.get_time()
                     isFinished = True
                     robot_angle += rotation*np.pi
                 if robot_angle > 2*np.pi:
                     robot_angle -= 2*np.pi
                 currentPoint += 1
-
-        # Print to terminal
-        # #rospy.loginfo("\n")
-        # #rospy.loginfo("Angle: %s", robot_angle)
-        # #rospy.loginfo("Error: %s", error)
-        # #rospy.loginfo("Linear x: %s", msgRobot.linear.x)
-        # #rospy.loginfo("Initial time: %s", startTime)
-        # #rospy.loginfo("Currrent time: %s", currentTime)
-        # #rospy.loginfo("DT: %s", dt)
-        # #rospy.loginfo("d_sim: %s", d_sim)
-    
-
-        # Speed regulation to prevent data over 1 or under -1
-        # if out > 1.0:
-        #     out = 1.0
-        # elif out < -1.0:d_sim
-        #     out = -1.0
-
-        # Handle friction and minimal output, for when the motor can't overpower friction
-        # if out <= 0.05 and out >= -0.05:
-        #     out = 0.0
+            
+            #wait for finishing movements
+            isFinished = False              # Flag of finish traslation
+            isFinishedR = False             # Flag of finish rotation
+            rate.sleep()
 
         # Publish error, motor_input, and velocity for gazebo
         # We handle the error as a topic in order to able to plot it
