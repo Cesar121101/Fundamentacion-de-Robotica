@@ -7,7 +7,6 @@ from geometry_msgs.msg import Twist
 #Setup global variables
 out = 0.0
 currentTime = 0.0
-startTime = 0.0
 msgRobot = Twist()
 r = 0.05
 l = 0.18
@@ -19,20 +18,17 @@ isPoints = False
 velocity = 0.0
 error = 0.0
 robot_angle = 0.0
-# points = [(0.0, 0.0), (2.0,2.0), (0.0,2.0),(0.0,0.0)]
-# points = [(0.0, 0.0),(4.0,0.0),(4.0, 2.0), (2.0,2.0), (2.0,4.0), (0.0, 4.0), (0.0,0.0),]
 currentPoint = 0
 vectorL = 1
 commands = [(0, 0)]
-#User variables
 user_finish = 0
 user_dist = 0
 user_time = 0
 type = 0
-points = []
+points = [(0.0, 0.0)]
 
 def get_inputs():
-    # global variables
+    # Global variables
     global user_finish
     global user_dist
     global user_time
@@ -60,6 +56,7 @@ def get_inputs():
                 user_dist = float(user_dist) # Set the distance
                 selection = True # The user already set a value
 
+            # If the user wants to define time
             elif var == 1:
                 user_time = input("\nWrite the time: ") # Get time from user
                 user_time = float(user_time) # Set the time
@@ -67,17 +64,21 @@ def get_inputs():
         
         # If the user wants points
         elif type == 1:
+
+            # Get the number of points
             num_points = input("\nHow many points do you want to set: ")
+
+            # Ask the user for each point
             for i in range(int(num_points)):
-                print("Write the point %s", i)
-                x = input("X coordinate: ")
-                y = input("Y coordinate: ")
-                points.append((float(x), float(y)))
-            selection = True
+                print("Write the point " + str(i))
+                x = input("X coordinate: ")     # Get X coordinate
+                y = input("Y coordinate: ")     # Get Y coordinate
+                points.append((float(x), float(y))) # Add values to array of points
+            selection = True    # The user already set a value
 
         # Validate the value of the parameters
-        print("User distance: %s", user_dist)
-        print("User time: %s", user_time)
+        print("User distance: " + str(user_dist))
+        print("User time: " + str(user_time))
         print("Points: ")
         print(points)
 
@@ -92,8 +93,9 @@ def get_inputs():
         # If the user does not want to provide another selection
         elif another == 1:
             user_finish = 1.0
+            selection = True
 
-# Make square points
+# Make points
 def calculate_points():
     # Get global variables
     global isPoints
@@ -141,7 +143,6 @@ def calculate_points():
     # If the user decide points
     elif type == 1:
         print("POINTS")
-        #points = rospy.get_param("/points", "No param found")
         print(points)
 
         # --- Follow a set of points ---
@@ -194,7 +195,7 @@ def calculate_points():
 
             print(commands)
 
-        #set movement to 1
+        # Set velocity to 1
         velocity = 1
     isPoints = True
 
@@ -210,7 +211,7 @@ def stop():
 if __name__=='__main__':
     print("The Controller is Running")
     
-    # Initialise and Setup node at 100Hz
+    # Initialize and Setup node at 100Hz
     rospy.init_node("controller")
     rate = rospy.Rate(100)
     rospy.on_shutdown(stop)
@@ -220,7 +221,7 @@ if __name__=='__main__':
     error_pub = rospy.Publisher("error", Float32 , queue_size=1) 
     cmd_vel = rospy.Publisher("cmd_vel", Twist, queue_size=1)
 
-    # parameters will be set
+    # Get information from the user
     get_inputs()
 
     # Set the current time
@@ -229,20 +230,8 @@ if __name__=='__main__':
     #Run the node
     while not rospy.is_shutdown():
 
-        # Get global parameters
-        # user_finish = 0.0
-        # user_dist = 2
-        # user_time = 5
-        # print("\n\nPARAMETERS")
-        # print(user_dist)
-        # print(user_time)
-        # print(user_finish)
-        # print(type)
-        # print(points)
-
-        # If the user already define the distance or time
+        # If we have information from the user
         if user_finish == 1.0 and isPoints == False:
-            # type = 0
             calculate_points()      # Calculate the points
             isPoints = True         # Flag to calculate only one time
             point = 0               # Manages which point we will focus on
@@ -270,28 +259,31 @@ if __name__=='__main__':
             
             # Handle rotations first (one must be first to get straight lines, or else we get curves)
             if errorR > 0 and isFinishedR == False:
-                msgRobot.angular.z = 0.5
-                msgRobot.linear.x = 0
-                isFinished == True
+                msgRobot.angular.z = 0.5    # Rotation velocity
+                msgRobot.linear.x = 0       # Angular velocity
+
+            # When the rotation is finished
             else:
-                msgRobot.linear.x = 0
-                msgRobot.angular.z = 0
-                isFinishedR = True
-                isFinished == False
+                msgRobot.linear.x = 0       # Linear velocity
+                msgRobot.angular.z = 0      # Angular velocity
+                isFinishedR = True          # Flag to finish rotation
                 
                 # Handle translation
                 if error > 0 and isFinished == False and isFinishedR == True:
-                    msgRobot.linear.x = velocity
-                    msgRobot.angular.z = 0
+                    msgRobot.linear.x = velocity    # Set linear velocity
+                    msgRobot.angular.z = 0          # Angular velocity
+                
+                # If both movements are finished
                 else:
-                    msgRobot.linear.x = 0
-                    msgRobot.angular.z = 0
-                    isFinished = True
-                    # Restart parameters
-                    point += 1 # as point is added at the end and our programs runs above first, we'll see a compilation error although robot has finished moving
-                    startTime = rospy.get_time()
-                    isFinished = True
-                    robot_angle += rotation*np.pi
+                    msgRobot.linear.x = 0       # Linear velocity
+                    msgRobot.angular.z = 0      # Angular velocity
+                    isFinished = True   
+                    # As point is added at the end and our programs runs above first, 
+                    #   we'll see a compilation error although robot has finished moving
+                    point += 1                          # Focus on the next point
+                    startTime = rospy.get_time()        # Reset start time
+                    robot_angle += rotation*np.pi       # Calculate robot_angle
+
                 if robot_angle > 2*np.pi:
                     robot_angle -= 2*np.pi
                 currentPoint += 1

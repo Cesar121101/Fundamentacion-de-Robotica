@@ -3,8 +3,7 @@
 
     <rosparam file = "$(find robot_control)/config/control_params.yaml" command = "load"  />
 
-    <node name="controller" pkg="robot_control" type="controller.py" output="screen" launch-prefix="gnome-terminal --command"/>
-    <node name="input" pkg="robot_control" type="input.py" output="screen" launch-prefix="gnome-terminal --command"/>
+    <node name="controller" pkg="robot_control" type="robot_trayectory.py" output="screen" launch-prefix="gnome-terminal --command"/>
     <!-- <node name="rqt_plot" pkg="rqt_plot" type="rqt_plot" output="screen"  args="/motor_input/data /error/data"/> -->
 
 </launch>
