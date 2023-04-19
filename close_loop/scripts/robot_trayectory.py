@@ -3,7 +3,7 @@ import rospy
 import numpy as np
 from std_msgs.msg import Float32
 from geometry_msgs.msg import Twist
-
+from control_msgs import msg
 #Setup global variables
 out = 0.0
 currentTime = 0.0
@@ -26,6 +26,37 @@ user_dist = 0
 user_time = 0
 type = 0
 points = [(0.0, 0.0)]
+robot_vel = msg.JointControllerState()
+wr = 0
+wl = 0
+prevTime = 0.0
+superError = 0.0
+Kp = 0.07
+Ki = 10
+Kd = 0
+
+# PID function 
+def PID(error):
+    global currentTime
+    global prevTime
+    global superError
+    global prevError
+
+    dt = currentTime-prevTime
+    
+    # P
+    P = Kp*error
+
+    # I
+    superError += error * dt
+    I = superError*Ki
+
+    # D
+    D = Kd*((error-prevError)/dt)
+
+    prevError = error
+
+    return (P + I + D)
 
 def get_inputs():
     # Global variables
@@ -204,6 +235,14 @@ def motor_output_callback(msg):
     global motorOut
     motorOut = msg.data
 
+def wr_callback(msg):
+    global wr
+    wr = msg.data
+
+def wl_callback(msg):
+    global wl
+    wl = msg.data
+
 # Stop Condition
 def stop():
   print("Stopping")
@@ -220,6 +259,8 @@ if __name__=='__main__':
     input_pub = rospy.Publisher("motor_input", Float32 , queue_size=1)
     error_pub = rospy.Publisher("error", Float32 , queue_size=1) 
     cmd_vel = rospy.Publisher("cmd_vel", Twist, queue_size=1)
+    sub_wr = rospy.Subscriber("wr", Float32, wr_callback)
+    sub_wl = rospy.Subscriber("wl", Float32, wl_callback)
 
     # Get information from the user
     get_inputs()
@@ -229,7 +270,7 @@ if __name__=='__main__':
 
     #Run the node
     while not rospy.is_shutdown():
-
+        
         # If we have information from the user
         if user_finish == 1.0 and isPoints == False:
             calculate_points()      # Calculate the points
@@ -256,7 +297,10 @@ if __name__=='__main__':
             omega_sim = r*(msgRobot.angular.z/l)*dt
             error = distance - d_sim
             errorR = rotation - omega_sim
-            
+
+            print("WR: " + str(wr))
+            print("WL: " + str(wl))
+
             # Handle rotations first (one must be first to get straight lines, or else we get curves)
             if errorR > 0 and isFinishedR == False:
                 msgRobot.angular.z = 0.5    # Rotation velocity
