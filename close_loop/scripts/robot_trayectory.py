@@ -39,6 +39,7 @@ errorRotation = 0.0
 prevError = 0.0
 d_real = 0.0
 omega_real = 0.0
+isFinishedT = False
 
 # PID function 
 def PID(error):
@@ -299,6 +300,14 @@ if __name__=='__main__':
             isFinished = False              # Flag of finish traslation
             isFinishedR = False             # Flag of finish rotation
 
+
+
+            #Verify that we just use the existing points
+            if(point > len(commands)-1):
+                point = len(commands)-1
+                isFinishedT = True          #Flag of finished trayectory
+
+
             # # Get the working Distance and Rotation for each command (point)
             distance = commands[point][0]
             rotation = commands[point][1]
@@ -315,9 +324,13 @@ if __name__=='__main__':
 
             errorDistance = distance - d_real
             errorRotation = rotation - omega_real
-        
-            linearVelocity = PID(errorDistance)
-            angularVelocity = PID(errorRotation)
+            
+            if(not(isFinishedT)):
+                linearVelocity = PID(errorDistance)
+                angularVelocity = PID(errorRotation)
+            else:
+                linearVelocity = 0.0
+                angularVelocity = 0.0
 
             if errorDistance <= 0.1 and errorRotation <= 0.1:
                 d_real = 0.0
@@ -339,6 +352,7 @@ if __name__=='__main__':
             print("Error Rotation: " + str(errorRotation))
             print("Dif Time: " + str(dt))
             print("Point: " + str(point))
+            print("Commnads" + str(commands))
             print(" ")
             
             # if(errorRotation < 0.05):
