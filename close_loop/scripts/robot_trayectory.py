@@ -4,6 +4,7 @@ import numpy as np
 from std_msgs.msg import Float32
 from geometry_msgs.msg import Twist
 from control_msgs import msg
+
 #Setup global variables
 out = 0.0
 currentTime = 0.0
@@ -12,21 +13,17 @@ r = 0.05
 l = 0.18
 distance = 0
 rotation = 0
-startTime = 0.0
 commands = []
 isPoints = False
 velocity = 0.0
-promVelocity = 0.0
 error = 0.0
 robot_angle = 0.0
-currentPoint = 0
 vectorL = 1
 user_finish = 0
 user_dist = 0
 user_time = 0
 type = 0
 points = []
-robot_vel = msg.JointControllerState()
 wr = 0
 wl = 0
 prevTime = 0.0
@@ -297,16 +294,11 @@ if __name__=='__main__':
             rate.sleep() # make a wait for making sure previous movements had stopped
             prevTime = currentTime
             currentTime = rospy.get_time()  # Obtain the time
-            isFinished = False              # Flag of finish traslation
-            isFinishedR = False             # Flag of finish rotation
-
-
 
             #Verify that we just use the existing points
             if(point > len(commands)-1):
                 point = len(commands)-1
                 isFinishedT = True          #Flag of finished trayectory
-
 
             # # Get the working Distance and Rotation for each command (point)
             distance = commands[point][0]
@@ -315,28 +307,29 @@ if __name__=='__main__':
             # dt = currentTime-startTime
             dt = currentTime-prevTime
 
-            # d_sim = msgRobot.linear.x*dt
-            # omega_sim = r*(msgRobot.angular.z/l)*dt
-            # error = distance - d_sim
-            # errorR = rotation - omega_sim
+            #Calculate real distance and the real rotation
             d_real += r*((wr + wl)/2.0)*dt
             omega_real += r*((wr - wl)/l)*dt
 
+            #Calculate the distance and rotation error
             errorDistance = distance - d_real
             errorRotation = rotation - omega_real
             
+            #If the trayectory is not finished the control value is obtain from the pid
             if(not(isFinishedT)):
                 linearVelocity = PID(errorDistance)
                 angularVelocity = PID(errorRotation)
-            else:
+            else:   #Else we set the linear and angular velocity to 0
                 linearVelocity = 0.0
                 angularVelocity = 0.0
 
+            #If we reach the point we reset real distance, real rotation and find the new point
             if errorDistance <= 0.1 and errorRotation <= 0.1:
                 d_real = 0.0
                 omega_real = 0.0
                 point += 1
 
+            #The value of the linear and angular velocity is obtained from the PID
             msgRobot.linear.x = linearVelocity
             msgRobot.angular.z = angularVelocity
 
@@ -354,51 +347,7 @@ if __name__=='__main__':
             print("Point: " + str(point))
             print("Commnads" + str(commands))
             print(" ")
-            
-            # if(errorRotation < 0.05):
-            #     msgRobot.linear.x = linearVelocity
-            # elif (errorDistance < 0.05):
-            #     msgRobot.angular.z = angularVelocity
-            # if errorDistance <= 0.01:
-            #     point += 1
-
-            # # Handle rotations first (one must be first to get straight lines, or else we get curves)
-            # if errorR > 0 and isFinishedR == False:
-            #     msgRobot.angular.z = 0.5    # Rotation velocity
-            #     msgRobot.linear.x = 0       # Angular velocity
-
-            # # When the rotation is finished
-            # else:
-            #     msgRobot.linear.x = 0       # Linear velocity
-            #     msgRobot.angular.z = 0      # Angular velocity
-            #     isFinishedR = True          # Flag to finish rotation
-                
-            #     # Handle translation
-            #     if error > 0 and isFinished == False and isFinishedR == True:
-            #         msgRobot.linear.x = velocity    # Set linear velocity
-            #         msgRobot.angular.z = 0          # Angular velocity
-                
-            #     # If both movements are finished
-            #     else:
-            #         msgRobot.linear.x = 0       # Linear velocity
-            #         msgRobot.angular.z = 0      # Angular velocity
-            #         isFinished = True   
-            #         # As point is added at the end and our programs runs above first, 
-            #         #   we'll see a compilation error although robot has finished moving
-            #         point += 1                          # Focus on the next point
-            #         startTime = rospy.get_time()        # Reset start time
-            #         robot_angle += rotation*np.pi       # Calculate robot_angle
-
-            #     if robot_angle > 2*np.pi:
-            #         robot_angle -= 2*np.pi
-            #     currentPoint += 1
-            
-            # #wait for finishing movements
-            # isFinished = False              # Flag of finish traslation
-            # isFinishedR = False             # Flag of finish rotation
-            # rate.sleep()
-
-        # Publish error, motor_input, and velocity for gazebo
+               
         # We handle the error as a topic in order to able to plot it
         error_pub.publish(error)
         input_pub.publish(out)
