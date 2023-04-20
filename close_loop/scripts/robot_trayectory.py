@@ -21,7 +21,6 @@ error = 0.0
 robot_angle = 0.0
 currentPoint = 0
 vectorL = 1
-commands = [(0, 0)]
 user_finish = 0
 user_dist = 0
 user_time = 0
@@ -38,6 +37,8 @@ Kd = 0
 errorDistance = 0.0
 errorRotation = 0.0
 prevError = 0.0
+d_real = 0.0
+omega_real = 0.0
 
 # PID function 
 def PID(error):
@@ -147,13 +148,13 @@ def calculate_points():
         if user_dist > 0.0 and float(user_time) == 0.0:
             # Make a square with the distance of the user
             commands.append((float(user_dist), 0.0)) # Move 
-            commands.append((0.0, 0.5))              # Turn 90 deg
+            commands.append((0.0, 1.6))              # Turn 90 deg
             commands.append((float(user_dist), 0.0)) # ...
-            commands.append((0.0, 0.5))
+            commands.append((0.0, 1.6))
             commands.append((float(user_dist), 0.0))
-            commands.append((0.0, 0.5))
+            commands.append((0.0, 1.6))
             commands.append((float(user_dist), 0.0))
-            commands.append((0.0, 0.5))
+            commands.append((0.0, 1.6))
             velocity = 1.0
 
         # If the user defined the time
@@ -279,7 +280,7 @@ if __name__=='__main__':
         if user_finish == 1.0 and isPoints == False:
             calculate_points()      # Calculate the points
             isPoints = True         # Flag to calculate only one time
-            point = 1               # Manages which point we will focus on
+            point = 0              # Manages which point we will focus on
             # error = user_dist       # Set initial error
             msgRobot.linear.x = 1   # Set initial velocity
             msgRobot.angular.z = 0  # Set initial rotation
@@ -287,8 +288,6 @@ if __name__=='__main__':
             # Get the working Distance and Rotation for each command (point)
             distance = commands[point][0]
             rotation = commands[point][1]
-
-            distance = 0
             
             rate.sleep()            # Time for all the variables to change
 
@@ -301,29 +300,32 @@ if __name__=='__main__':
             isFinishedR = False             # Flag of finish rotation
 
             # # Get the working Distance and Rotation for each command (point)
-            # distance = commands[point][0]
-            # rotation = commands[point][1]
+            distance = commands[point][0]
+            rotation = commands[point][1]
 
-            dt = currentTime-startTime
+            # dt = currentTime-startTime
+            dt = currentTime-prevTime
 
             # d_sim = msgRobot.linear.x*dt
             # omega_sim = r*(msgRobot.angular.z/l)*dt
             # error = distance - d_sim
             # errorR = rotation - omega_sim
-            d_real = r*((wr + wl)/2.0)*dt
-            omega_real = r*((wr - wl)/l)*dt
+            d_real += r*((wr + wl)/2.0)*dt
+            omega_real += r*((wr - wl)/l)*dt
 
-            errorDistance = abs(distance - d_real)
+            errorDistance = distance - d_real
             errorRotation = rotation - omega_real
         
             linearVelocity = PID(errorDistance)
-            # angularVelocity = PID(errorRotation)
+            angularVelocity = PID(errorRotation)
 
-            # if(errorDistance <= 0.1):
-            #     distance = 0
+            if errorDistance <= 0.1 and errorRotation <= 0.1:
+                d_real = 0.0
+                omega_real = 0.0
+                point += 1
 
             msgRobot.linear.x = linearVelocity
-            msgRobot.angular.z = 0
+            msgRobot.angular.z = angularVelocity
 
             print("WR: " + str(wr))
             print("WL: " + str(wl))
@@ -332,11 +334,11 @@ if __name__=='__main__':
             print("Real distance: " + str(d_real))
             print("Real omega: " + str(omega_real))
             print("Linear Velocity: " + str(linearVelocity))
-            # print("Angular Velocity: " + str(angularVelocity))
+            print("Angular Velocity: " + str(angularVelocity))
             print("Error Distance: " + str(errorDistance))
             print("Error Rotation: " + str(errorRotation))
             print("Dif Time: " + str(dt))
-            # print("Point: " + str(point))
+            print("Point: " + str(point))
             print(" ")
             
             # if(errorRotation < 0.05):
