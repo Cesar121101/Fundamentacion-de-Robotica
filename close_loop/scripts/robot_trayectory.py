@@ -154,6 +154,7 @@ def calculate_points():
 
             robotx = points[i][0]
             roboty = points[i][1]
+            # COmentario sobre esta linea
 
             newpointx = vectorL*np.cos(robot_angle) + robotx
             newpointy = vectorL*np.sin(robot_angle) + roboty
