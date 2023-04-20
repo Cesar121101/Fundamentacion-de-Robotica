@@ -16,6 +16,7 @@ startTime = 0.0
 commands = []
 isPoints = False
 velocity = 0.0
+promVelocity = 0.0
 error = 0.0
 robot_angle = 0.0
 currentPoint = 0
@@ -31,8 +32,8 @@ wr = 0
 wl = 0
 prevTime = 0.0
 superError = 0.0
-Kp = 0.07
-Ki = 10
+Kp = 0.5
+Ki = 0
 Kd = 0
 errorDistance = 0.0
 errorRotation = 0.0
@@ -278,9 +279,17 @@ if __name__=='__main__':
         if user_finish == 1.0 and isPoints == False:
             calculate_points()      # Calculate the points
             isPoints = True         # Flag to calculate only one time
-            point = 0               # Manages which point we will focus on
-            error = user_dist       # Set initial error
-            msgRobot.linear.x = 0   # Set initial velocity
+            point = 1               # Manages which point we will focus on
+            # error = user_dist       # Set initial error
+            msgRobot.linear.x = 1   # Set initial velocity
+            msgRobot.angular.z = 0  # Set initial rotation
+
+            # Get the working Distance and Rotation for each command (point)
+            distance = commands[point][0]
+            rotation = commands[point][1]
+
+            distance = 0
+            
             rate.sleep()            # Time for all the variables to change
 
         # If the calculated points exists
@@ -291,38 +300,51 @@ if __name__=='__main__':
             isFinished = False              # Flag of finish traslation
             isFinishedR = False             # Flag of finish rotation
 
-            # Get the working Distance and Rotation for each command (point)
-            distance = commands[point][0]
-            rotation = commands[point][1]
+            # # Get the working Distance and Rotation for each command (point)
+            # distance = commands[point][0]
+            # rotation = commands[point][1]
 
             dt = currentTime-startTime
 
-            d_sim = msgRobot.linear.x*dt
-            omega_sim = r*(msgRobot.angular.z/l)*dt
-            error = distance - d_sim
-            errorR = rotation - omega_sim
-
+            # d_sim = msgRobot.linear.x*dt
+            # omega_sim = r*(msgRobot.angular.z/l)*dt
+            # error = distance - d_sim
+            # errorR = rotation - omega_sim
             d_real = r*((wr + wl)/2.0)*dt
             omega_real = r*((wr - wl)/l)*dt
 
-            errorDistance = distance - d_real
+            errorDistance = abs(distance - d_real)
             errorRotation = rotation - omega_real
-
+        
             linearVelocity = PID(errorDistance)
-            angularVelocity = PID(errorRotation)
+            # angularVelocity = PID(errorRotation)
+
+            # if(errorDistance <= 0.1):
+            #     distance = 0
+
+            msgRobot.linear.x = linearVelocity
+            msgRobot.angular.z = 0
 
             print("WR: " + str(wr))
             print("WL: " + str(wl))
             print("Distance: " + str(distance))
+            print("Rotation: " + str(rotation))
+            print("Real distance: " + str(d_real))
+            print("Real omega: " + str(omega_real))
+            print("Linear Velocity: " + str(linearVelocity))
+            # print("Angular Velocity: " + str(angularVelocity))
             print("Error Distance: " + str(errorDistance))
             print("Error Rotation: " + str(errorRotation))
-            print("Point: " + str(point))
-
-            msgRobot.linear.x = linearVelocity
-            msgRobot.angular.z = angularVelocity
-
-            if errorDistance <= 0.01 and errorRotation <= 0.01:
-                point += 1
+            print("Dif Time: " + str(dt))
+            # print("Point: " + str(point))
+            print(" ")
+            
+            # if(errorRotation < 0.05):
+            #     msgRobot.linear.x = linearVelocity
+            # elif (errorDistance < 0.05):
+            #     msgRobot.angular.z = angularVelocity
+            # if errorDistance <= 0.01:
+            #     point += 1
 
             # # Handle rotations first (one must be first to get straight lines, or else we get curves)
             # if errorR > 0 and isFinishedR == False:
