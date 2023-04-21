@@ -26,8 +26,8 @@
   <!--load robot description -->
    <param name="robot_description" command="$(find xacro)/xacro --inorder '$(find puzzlebot_gazebo)/urdf/puzzlebot.xacro'" />
     
-    <arg name="x" default="-0.955"/>
-    <arg name="y" default="0.75"/>
+    <arg name="x" default="-1.0"/>
+    <arg name="y" default="1.0"/>
     <arg name="z" default="0.0"/>
     <arg name="Y" default="-1.57"/>
     

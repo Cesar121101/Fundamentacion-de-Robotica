@@ -10,7 +10,7 @@ out = 0.0
 currentTime = 0.0
 msgRobot = Twist()
 r = 0.05
-l = 0.18
+l = 0.191
 distance = 0
 rotation = 0
 commands = []
@@ -29,7 +29,7 @@ wl = 0
 prevTime = 0.0
 superError = 0.0
 Kp = 0.5
-Ki = 0
+Ki = 0.0
 Kd = 0
 errorDistance = 0.0
 errorRotation = 0.0
@@ -220,7 +220,7 @@ def calculate_points():
                 print("Not right one")
                 angle = 2*np.pi-angle
                 
-            commands.append((0.0, ((angle)/np.pi)))
+            commands.append((0.0,((angle)/np.pi)))
             commands.append((b, 0.0))
             print("Sent Angle: " + str(angle/np.pi))
             print("Sent Distance: " + str(b))
@@ -309,7 +309,8 @@ if __name__=='__main__':
 
             #Calculate real distance and the real rotation
             d_real += r*((wr + wl)/2.0)*dt
-            omega_real += r*((wr - wl)/l)*dt
+            omega_real += ((r*((wr-wl)/l))/np.pi)*dt
+            # omega_real += msgRobot.angular.z * dt
 
             #Calculate the distance and rotation error
             errorDistance = distance - d_real
@@ -318,16 +319,17 @@ if __name__=='__main__':
             #If the trayectory is not finished the control value is obtain from the pid
             if(not(isFinishedT)):
                 linearVelocity = PID(errorDistance)
-                angularVelocity = PID(errorRotation)
+                angularVelocity = 5*PID(errorRotation)
             else:   #Else we set the linear and angular velocity to 0
                 linearVelocity = 0.0
                 angularVelocity = 0.0
 
             #If we reach the point we reset real distance, real rotation and find the new point
-            if errorDistance <= 0.1 and errorRotation <= 0.001:
+            if errorDistance <= 0.01 and errorRotation <= 0.01:
                 d_real = 0.0
                 omega_real = 0.0
                 point += 1
+                rate.sleep()
 
             #The value of the linear and angular velocity is obtained from the PID
             msgRobot.linear.x = linearVelocity
