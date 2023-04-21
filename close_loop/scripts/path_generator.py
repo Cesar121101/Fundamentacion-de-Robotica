@@ -13,6 +13,7 @@ isPoints = False
 robot_angle = 0.0
 vectorL = 1
 user_finish = 0
+user_dist = 0.0
 type = 0
 points = [[0.0,0.0]]
 isFinish = 0.0
