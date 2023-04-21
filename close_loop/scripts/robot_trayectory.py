@@ -23,7 +23,7 @@ user_finish = 0
 user_dist = 0
 user_time = 0
 type = 0
-points = []
+points = [[0.0,0.0]]
 wr = 0
 wl = 0
 prevTime = 0.0
@@ -324,7 +324,7 @@ if __name__=='__main__':
                 angularVelocity = 0.0
 
             #If we reach the point we reset real distance, real rotation and find the new point
-            if errorDistance <= 0.1 and errorRotation <= 0.1:
+            if errorDistance <= 0.1 and errorRotation <= 0.001:
                 d_real = 0.0
                 omega_real = 0.0
                 point += 1
@@ -343,7 +343,6 @@ if __name__=='__main__':
             print("Angular Velocity: " + str(angularVelocity))
             print("Error Distance: " + str(errorDistance))
             print("Error Rotation: " + str(errorRotation))
-            print("Dif Time: " + str(dt))
             print("Point: " + str(point))
             print("Commnads" + str(commands))
             print(" ")
