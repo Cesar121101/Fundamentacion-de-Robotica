@@ -3,20 +3,13 @@ import rospy
 import numpy as np
 from std_msgs.msg import Float32
 from geometry_msgs.msg import Twist
-from control_msgs import msg
+from close_loop.msg import goals
 
 #Setup global variables
-out = 0.0
-currentTime = 0.0
-msgRobot = Twist()
-r = 0.05
-l = 0.191
 distance = 0
 rotation = 0
 commands = []
 isPoints = False
-velocity = 0.0
-error = 0.0
 robot_angle = 0.0
 vectorL = 1
 user_finish = 0
@@ -24,42 +17,8 @@ user_dist = 0
 user_time = 0
 type = 0
 points = [[0.0,0.0]]
-wr = 0
-wl = 0
-prevTime = 0.0
-superError = 0.0
-Kp = 0.5
-Ki = 0.0
-Kd = 0
-errorDistance = 0.0
-errorRotation = 0.0
-prevError = 0.0
-d_real = 0.0
-omega_real = 0.0
-isFinishedT = False
-
-# PID function 
-def PID(error):
-    global currentTime
-    global prevTime
-    global superError
-    global prevError
-
-    dt = currentTime-prevTime
-    
-    # P
-    P = Kp*error
-
-    # I
-    superError += error * dt
-    I = superError*Ki
-
-    # D
-    D = Kd*((error-prevError)/dt)
-
-    prevError = error
-
-    return (P + I + D)
+isFinish = 0.0
+msg_goals = goals()
 
 def get_inputs():
     # Global variables
@@ -133,7 +92,6 @@ def get_inputs():
 def calculate_points():
     # Get global variables
     global isPoints
-    global velocity
     global type
     global user_dist
     global user_time
@@ -153,7 +111,6 @@ def calculate_points():
             commands.append((0.0, 1.6))
             commands.append((float(user_dist), 0.0))
             commands.append((0.0, 1.6))
-            velocity = 1.0
 
         # If the user defined the time
         else: 
@@ -166,13 +123,6 @@ def calculate_points():
             commands.append((0.0, 0.5))
             commands.append((2.0, 0.0))
             commands.append((0.0, 0.5))
-
-            # Calculate the velocity
-            velocity = 8.0/float(user_time)
-
-            # If the velocity exceeds the max velocity
-            if velocity > 1:
-                velocity = 1
 
     # If the user decide points
     elif type == 1:
@@ -229,47 +179,32 @@ def calculate_points():
 
             print(commands)
 
-        # Set velocity to 1
-        velocity = 1
     isPoints = True
 
-# This function handles the info inside of the 'motor_output' topic
-def motor_output_callback(msg):
-    global motorOut
-    motorOut = msg.data
-
-def wr_callback(msg):
-    global wr
-    wr = msg.data
-
-def wl_callback(msg):
-    global wl
-    wl = msg.data
+# Callback function to get state of the robot
+def isFinish_callback(msg):
+    global isFinish
+    isFinish = msg.data
 
 # Stop Condition
 def stop():
   print("Stopping")
 
 if __name__=='__main__':
-    print("The Controller is Running")
+    print("The Path Generator is Running")
     
     # Initialize and Setup node at 100Hz
-    rospy.init_node("controller")
+    rospy.init_node("path_generator")
     rate = rospy.Rate(100)
     rospy.on_shutdown(stop)
 
-    # Setup Publishers
-    input_pub = rospy.Publisher("motor_input", Float32 , queue_size=1)
-    error_pub = rospy.Publisher("error", Float32 , queue_size=1) 
-    cmd_vel = rospy.Publisher("cmd_vel", Twist, queue_size=1)
-    sub_wr = rospy.Subscriber("wr", Float32, wr_callback)
-    sub_wl = rospy.Subscriber("wl", Float32, wl_callback)
+    # Setup Publishers and Subscribers
+    goals_pub = rospy.Publisher("goals", goals, queue_size=1)
+    isFinish_pub = rospy.Publisher("isFinish", Float32, queue_size=1)
+    rospy.Subscriber("isFinish", Float32, isFinish_callback)
 
     # Get information from the user
     get_inputs()
-
-    # Set the current time
-    startTime = rospy.get_time()
 
     #Run the node
     while not rospy.is_shutdown():
@@ -278,79 +213,30 @@ if __name__=='__main__':
         if user_finish == 1.0 and isPoints == False:
             calculate_points()      # Calculate the points
             isPoints = True         # Flag to calculate only one time
-            point = 0              # Manages which point we will focus on
-            # error = user_dist       # Set initial error
-            msgRobot.linear.x = 1   # Set initial velocity
-            msgRobot.angular.z = 0  # Set initial rotation
-
-            # Get the working Distance and Rotation for each command (point)
-            distance = commands[point][0]
-            rotation = commands[point][1]
-            
+            point = 0               # Manages which point we will focus on  
             rate.sleep()            # Time for all the variables to change
 
         # If the calculated points exists
         if isPoints:
-            rate.sleep() # make a wait for making sure previous movements had stopped
-            prevTime = currentTime
-            currentTime = rospy.get_time()  # Obtain the time
 
-            #Verify that we just use the existing points
-            if(point > len(commands)-1):
-                point = len(commands)-1
-                isFinishedT = True          #Flag of finished trayectory
+            # If the robot has not finish
+            if isFinish == 0.0:
 
-            # # Get the working Distance and Rotation for each command (point)
-            distance = commands[point][0]
-            rotation = commands[point][1]
+                # Get the working Distance and Rotation for each command (point)
+                distance = commands[point][0]
+                rotation = commands[point][1]
 
-            # dt = currentTime-startTime
-            dt = currentTime-prevTime
+                # Create the message
+                msg_goals.point = point         # Point we are doing
+                msg_goals.distance = distance   # Distance goal
+                msg_goals.rotation = rotation   # Rotation goal
 
-            #Calculate real distance and the real rotation
-            d_real += r*((wr + wl)/2.0)*dt
-            omega_real += ((r*((wr-wl)/l))/np.pi)*dt
-            # omega_real += msgRobot.angular.z * dt
+                goals_pub.publish(msg_goals)    # Publish the message to topic 'goals'
 
-            #Calculate the distance and rotation error
-            errorDistance = distance - d_real
-            errorRotation = rotation - omega_real
-            
-            #If the trayectory is not finished the control value is obtain from the pid
-            if(not(isFinishedT)):
-                linearVelocity = PID(errorDistance)
-                angularVelocity = 5*PID(errorRotation)
-            else:   #Else we set the linear and angular velocity to 0
-                linearVelocity = 0.0
-                angularVelocity = 0.0
+            # When the robot finish
+            else:
+                point += 1                      # Do the next point
+                isFinish = 0.0                  # Flag that is not finish
+                isFinish_pub.publish(isFinish)  # Publish flag of ifFinish
 
-            #If we reach the point we reset real distance, real rotation and find the new point
-            if errorDistance <= 0.01 and errorRotation <= 0.01:
-                d_real = 0.0
-                omega_real = 0.0
-                point += 1
-                rate.sleep()
-
-            #The value of the linear and angular velocity is obtained from the PID
-            msgRobot.linear.x = linearVelocity
-            msgRobot.angular.z = angularVelocity
-
-            print("WR: " + str(wr))
-            print("WL: " + str(wl))
-            print("Distance: " + str(distance))
-            print("Rotation: " + str(rotation))
-            print("Real distance: " + str(d_real))
-            print("Real omega: " + str(omega_real))
-            print("Linear Velocity: " + str(linearVelocity))
-            print("Angular Velocity: " + str(angularVelocity))
-            print("Error Distance: " + str(errorDistance))
-            print("Error Rotation: " + str(errorRotation))
-            print("Point: " + str(point))
-            print("Commnads" + str(commands))
-            print(" ")
-               
-        # We handle the error as a topic in order to able to plot it
-        error_pub.publish(error)
-        input_pub.publish(out)
-        cmd_vel.publish(msgRobot)
         rate.sleep()
