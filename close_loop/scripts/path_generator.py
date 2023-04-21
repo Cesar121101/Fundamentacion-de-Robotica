@@ -13,8 +13,6 @@ isPoints = False
 robot_angle = 0.0
 vectorL = 1
 user_finish = 0
-user_dist = 0
-user_time = 0
 type = 0
 points = [[0.0,0.0]]
 isFinish = 0.0
@@ -24,7 +22,6 @@ def get_inputs():
     # Global variables
     global user_finish
     global user_dist
-    global user_time
     global type
     global points
     selection = False   # To know if a selection was made
@@ -39,21 +36,16 @@ def get_inputs():
 
         # If the user wants square
         if type == 0:
-            # The user choose to define distance of time
-            print("\nChoose 0 to set the distance or 1 to set the time")
-            var = input("Your choice: ")
+            user_dist = input("\nWrite the distance: ") # Get distance from user
+            user_dist = float(user_dist) # Set the distance
 
-            # If the user wants to define distance
-            if var == 0:
-                user_dist = input("\nWrite the distance: ") # Get distance from user
-                user_dist = float(user_dist) # Set the distance
-                selection = True # The user already set a value
+            # Set the points for the square
+            points.append((user_dist, 0.0))
+            points.append((user_dist, user_dist))
+            points.append((0.0, user_dist))
+            points.append((0.0, 0.0))
 
-            # If the user wants to define time
-            elif var == 1:
-                user_time = input("\nWrite the time: ") # Get time from user
-                user_time = float(user_time) # Set the time
-                selection = True # The user already set a value
+            selection = True # The user already set a value
         
         # If the user wants points
         elif type == 1:
@@ -67,11 +59,11 @@ def get_inputs():
                 x = input("X coordinate: ")     # Get X coordinate
                 y = input("Y coordinate: ")     # Get Y coordinate
                 points.append((float(x), float(y))) # Add values to array of points
+                
             selection = True    # The user already set a value
 
         # Validate the value of the parameters
         print("User distance: " + str(user_dist))
-        print("User time: " + str(user_time))
         print("Points: ")
         print(points)
 
@@ -94,90 +86,61 @@ def calculate_points():
     global isPoints
     global type
     global user_dist
-    global user_time
     global points
     global robot_angle
 
-    # If the user decide a square
-    if type == 0:
-        # If the user defined the distance
-        if user_dist > 0.0 and float(user_time) == 0.0:
-            # Make a square with the distance of the user
-            commands.append((float(user_dist), 0.0)) # Move 
-            commands.append((0.0, 1.6))              # Turn 90 deg
-            commands.append((float(user_dist), 0.0)) # ...
-            commands.append((0.0, 1.6))
-            commands.append((float(user_dist), 0.0))
-            commands.append((0.0, 1.6))
-            commands.append((float(user_dist), 0.0))
-            commands.append((0.0, 1.6))
+    print("POINTS")
+    print(points)
 
-        # If the user defined the time
-        else: 
-            # Make a square of 2m
-            commands.append((2.0, 0.0)) # Move 2 m
-            commands.append((0.0, 0.5)) # Turn 90 deg
-            commands.append((2.0, 0.0)) # ...
-            commands.append((0.0, 0.5))
-            commands.append((2.0, 0.0))
-            commands.append((0.0, 0.5))
-            commands.append((2.0, 0.0))
-            commands.append((0.0, 0.5))
+    # --- Follow a set of points ---
+    for i in range(len(points)-1):
+        # Distance
+        distx = points[i+1][0] - points[i][0]
+        disty = points[i+1][1] - points[i][1]
+        b = np.sqrt(distx*distx+disty*disty)
 
-    # If the user decide points
-    elif type == 1:
-        print("POINTS")
-        print(points)
+        robotx = points[i][0]
+        roboty = points[i][1]
 
-        # --- Follow a set of points ---
-        for i in range(len(points)-1):
-            # Distance
-            distx = points[i+1][0] - points[i][0]
-            disty = points[i+1][1] - points[i][1]
-            b = np.sqrt(distx*distx+disty*disty)
+        newpointx = vectorL*np.cos(robot_angle) + robotx
+        newpointy = vectorL*np.sin(robot_angle) + roboty
 
-            robotx = points[i][0]
-            roboty = points[i][1]
+        print("New point: x(" + str(newpointx) + "), y(" + str(newpointy)+ ")")
 
-            newpointx = vectorL*np.cos(robot_angle) + robotx
-            newpointy = vectorL*np.sin(robot_angle) + roboty
+        distx2 = newpointx-points[i+1][0]
+        disty2 = newpointy-points[i+1][1]
+        a = np.sqrt(distx2*distx2 + disty2*disty2)
 
-            print("New point: x(" + str(newpointx) + "), y(" + str(newpointy)+ ")")
+        print("a: "+str(a))
+        c = vectorL
+        print("c: " + str(c))
+        print("b: " + str(b))
 
-            distx2 = newpointx-points[i+1][0]
-            disty2 = newpointy-points[i+1][1]
-            a = np.sqrt(distx2*distx2 + disty2*disty2)
+        op = (b*b+c*c-a*a)/(2*b*c)
+        angle = np.arccos(op)
+        print("angle: "+ str(angle))
+        print("robotangle: "+str(robot_angle))
 
-            print("a: "+str(a))
-            c = vectorL
-            print("c: " + str(c))
-            print("b: " + str(b))
+        # Check which side to choose
+        testPointX = b*np.cos(robot_angle)*np.cos(angle) - b*vectorL*np.sin(robot_angle)*np.sin(angle) + robotx
+        testPointY = b*np.cos(robot_angle)*np.sin(angle) + b*vectorL*np.sin(robot_angle)*np.cos(angle) + roboty
 
-            op = (b*b+c*c-a*a)/(2*b*c)
-            angle = np.arccos(op)
-            print("angle: "+ str(angle))
-            print("robotangle: "+str(robot_angle))
+        print("Test point: x(" + str(testPointX) + "), y(" + str(testPointY)+ ")")
 
-            # Check which side to choose
-            testPointX = b*np.cos(robot_angle)*np.cos(angle) - b*vectorL*np.sin(robot_angle)*np.sin(angle) + robotx
-            testPointY = b*np.cos(robot_angle)*np.sin(angle) + b*vectorL*np.sin(robot_angle)*np.cos(angle) + roboty
+        if (testPointX < points[i+1][0]+1 and testPointX > points[i+1][0]-1 )and (testPointY < points[i+1][1]+1 and testPointY > points[i+1][1]-1):
+            print("First try :)")      
+        else:
+            print("Not right one")
+            angle = 2*np.pi-angle
+            
+        commands.append((0.0,((angle)/np.pi)))
+        commands.append((b, 0.0))
+        print("Sent Angle: " + str(angle/np.pi))
+        print("Sent Distance: " + str(b))
+        print("")
+        robot_angle += angle
 
-            print("Test point: x(" + str(testPointX) + "), y(" + str(testPointY)+ ")")
-
-            if (testPointX < points[i+1][0]+1 and testPointX > points[i+1][0]-1 )and (testPointY < points[i+1][1]+1 and testPointY > points[i+1][1]-1):
-                print("First try :)")      
-            else:
-                print("Not right one")
-                angle = 2*np.pi-angle
-                
-            commands.append((0.0,((angle)/np.pi)))
-            commands.append((b, 0.0))
-            print("Sent Angle: " + str(angle/np.pi))
-            print("Sent Distance: " + str(b))
-            print("")
-            robot_angle += angle
-
-            print(commands)
+        print(commands)
 
     isPoints = True
 

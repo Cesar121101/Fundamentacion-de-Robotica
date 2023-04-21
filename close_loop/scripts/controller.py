@@ -114,11 +114,6 @@ if __name__=='__main__':
             prevTime = currentTime
             currentTime = rospy.get_time()  # Obtain the time
 
-            #Verify that we just use the existing points
-            # if(point > len(commands)-1):
-            #     point = len(commands)-1
-            #     isFinishedT = True          #Flag of finished trayectory
-
             dt = currentTime-prevTime
 
             #Calculate real distance and the real rotation
