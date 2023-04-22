@@ -2,7 +2,7 @@
   <world name='default'>
     <?xml version="1.0" ?>
   <model name="track">
-  <pose frame=''>0 0 0 0 -0 0</pose>
+  <pose frame=''>1 1 0 0 -0 0</pose>
     <static>true</static>
     <link name="track_link">
       <visual name="track_visual">
