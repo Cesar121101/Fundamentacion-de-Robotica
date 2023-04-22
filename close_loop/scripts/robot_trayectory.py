@@ -204,6 +204,11 @@ def calculate_points():
             print("b: " + str(b))
 
             op = (b*b+c*c-a*a)/(2*b*c)
+            print(round(op,14))
+            op = round(op,14)
+            #val = 0
+            #val = round(op,8)
+            #print("val: " + str(val))
             angle = np.arccos(op)
             print("angle: "+ str(angle))
             print("robotangle: "+str(robot_angle))
@@ -335,19 +340,19 @@ if __name__=='__main__':
             msgRobot.linear.x = linearVelocity
             msgRobot.angular.z = angularVelocity
 
-            print("WR: " + str(wr))
-            print("WL: " + str(wl))
-            print("Distance: " + str(distance))
-            print("Rotation: " + str(rotation))
-            print("Real distance: " + str(d_real))
-            print("Real omega: " + str(omega_real))
-            print("Linear Velocity: " + str(linearVelocity))
-            print("Angular Velocity: " + str(angularVelocity))
-            print("Error Distance: " + str(errorDistance))
-            print("Error Rotation: " + str(errorRotation))
-            print("Point: " + str(point))
-            print("Commnads" + str(commands))
-            print(" ")
+            #print("WR: " + str(wr))
+            #print("WL: " + str(wl))
+            #print("Distance: " + str(distance))
+            #print("Rotation: " + str(rotation))
+            #print("Real distance: " + str(d_real))
+            #print("Real omega: " + str(omega_real))
+            #print("Linear Velocity: " + str(linearVelocity))
+            #print("Angular Velocity: " + str(angularVelocity))
+            #print("Error Distance: " + str(errorDistance))
+            #print("Error Rotation: " + str(errorRotation))
+            #print("Point: " + str(point))
+            #print("Commnads" + str(commands))
+            #print(" ")
                
         # We handle the error as a topic in order to able to plot it
         error_pub.publish(error)
