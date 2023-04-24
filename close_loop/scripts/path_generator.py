@@ -118,6 +118,9 @@ def calculate_points():
         print("b: " + str(b))
 
         op = (b*b+c*c-a*a)/(2*b*c)
+        print("op: " + str(round(op,14)))
+        op = round(op,14)
+        
         angle = np.arccos(op)
         print("angle: "+ str(angle))
         print("robotangle: "+str(robot_angle))
