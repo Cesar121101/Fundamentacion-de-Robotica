@@ -31,6 +31,8 @@ isFinishedT = False
 isFinishMovement = 0.0
 prevPoint = -1
 point = -1
+color_light = 2.0
+
 
 # PID function 
 def PID(error):
@@ -81,6 +83,10 @@ def isFinish_callback(msg):
     global isFinishMovement
     isFinishMovement = msg.data
 
+def colors_callback(msg):
+    global color_light
+    color_light = msg.data
+
 # Stop Condition
 def stop():
   print("Stopping")
@@ -101,6 +107,7 @@ if __name__=='__main__':
     rospy.Subscriber("wr", Float32, wr_callback)
     rospy.Subscriber("wl", Float32, wl_callback)
     rospy.Subscriber("goals", goals, goals_callback)
+    rospy.Subscriber("colors", Float32, colors_callback)
 
     # Set the current time
     startTime = rospy.get_time()
@@ -125,9 +132,21 @@ if __name__=='__main__':
             errorRotation = rotation - omega_real
             
             #If the trayectory is not finished the control value is obtain from the pid
-            if(not(isFinishedT)):
+            if(not(isFinishedT)) and color_light == 2.0:
                 linearVelocity = PID(errorDistance)
                 angularVelocity = 5*PID(errorRotation)
+            elif (not(isFinishedT)) and color_light == 0.0:
+                linearVelocity = 0.0
+                angularVelocity = 0.0
+            elif (not(isFinishedT)) and color_light == 1.0:
+                if linearVelocity > 0:
+                    linearVelocity -= 1
+                else:
+                    linearVelocity = 0
+                if angularVelocity > 0:
+                    angularVelocity -= 1
+                else:
+                    angularVelocity = 0
             else:   #Else we set the linear and angular velocity to 0
                 linearVelocity = 0.0
                 angularVelocity = 0.0

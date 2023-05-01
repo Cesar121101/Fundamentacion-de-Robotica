@@ -4,6 +4,8 @@ project(close_loop)
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
 
+set(OpenCV_DIR /usr/share/OpenCV)
+
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
@@ -11,6 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
   message_generation
+  OpenCV
 )
 
 ## System dependencies are found with CMake's conventions
@@ -160,7 +163,7 @@ include_directories(
 ## Mark executable scripts (Python etc.) for installation
 ## in contrast to setup.py, you can choose the destination
 catkin_install_python(PROGRAMS
-  scripts/controller.py scripts/path_generator.py 
+  scripts/controller.py scripts/path_generator.py scripts/traffic_light.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
