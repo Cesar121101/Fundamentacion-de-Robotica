@@ -1,0 +1,34 @@
+<launch>
+
+     <!-- Load joint controller configurations from YAML file to parameter server -->
+  <rosparam file="$(find poke_control)/config/poke_control.yaml" command="load"/>
+
+
+  <!-- Load the empty world -->
+  <arg name="world_file" default="$(find reto_vision)/worlds/env.world"/>
+  <param name="world_name" value="$(arg world_file)"/>
+  <node name="gazebo" pkg="gazebo_ros" type="gazebo" args="$(arg world_file)" respawn="false" output="screen">
+  </node>
+
+ <!-- Spawn the robot -->
+    
+    <arg name="x" default="0.0"/>
+    <arg name="y" default="0.0"/>
+    <arg name="z" default="0.0"/>
+    <arg name="Y" default="0"/>
+
+  <param name="robot_description" command="$(find xacro)/xacro.py '$(find poke_description)/urdf/poke.urdf.xacro'"/>
+
+  <node name="poke_spawn" pkg="gazebo_ros" type="spawn_model" output="screen"
+   args="-urdf -param robot_description -model poke_arm -x $(arg x) -y $(arg y) -z $(arg z) -Y $(arg Y)" />
+
+ <!-- load the controllers -->
+  <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false"
+	output="screen" args="arm_controller"/>
+
+  <!-- convert joint states to TF transforms for rviz, etc -->
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"
+	respawn="false" output="screen">
+  </node>
+
+</launch>
