@@ -202,7 +202,8 @@ if __name__=='__main__':
 
             # When the robot finish
             else:
-                point += 1                      # Do the next point
+                if(point < len(commands)-1):
+                    point += 1                      # Do the next point
                 isFinish = 0.0                  # Flag that is not finish
                 isFinish_pub.publish(isFinish)  # Publish flag of ifFinish
 

@@ -183,7 +183,9 @@ if __name__=='__main__':
             print("Error Rotation: " + str(errorRotation))
             print("Point: " + str(point))
             print(" ")
-               
+        else: 
+            msgRobot.linear.x = 0.0
+            msgRobot.angular.z = 0.0       
         # Publish all the topics
         input_pub.publish(out)
         cmd_vel.publish(msgRobot)
