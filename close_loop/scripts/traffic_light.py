@@ -78,7 +78,7 @@ if __name__=='__main__':
 
     # Setup Publishers and Suscribers
     colors_pub = rospy.Publisher("colors", Float32, queue_size=1)
-    rospy.Subscriber("/video_source/raw", Image, camera_callback)
+    rospy.Subscriber("video_source/raw", Image, camera_callback)
 
     # Define the ranges of red, green, and yellow colors in the BGR format
     lower_red = np.array([0, 0, 100])
