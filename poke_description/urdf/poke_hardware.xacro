@@ -1,5 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <robot xmlns:xacro="http://ros.org/wiki/xacro">
+
+    <xacro:macro name="inertial_block" params="mass length radius">
+        <inertial>
+        <origin xyz="0 0 ${length/2}" rpy="0 0 0"/>
+        <mass value="${mass}"/>
+        <inertia
+            ixx="${mass / 12.0 * (2*radius*2*radius + length*length)}" ixy="0.0" ixz="0.0"
+            iyy="${mass / 12.0 * (length*length + 2*radius*2*radius)}" iyz="0.0"
+            izz="${mass / 12.0 * (2*radius*2*radius + 2*radius*2*radius)}" />
+    </inertial>
+    </xacro:macro>
+
    <!-- macro for arm base mount -->
    <xacro:macro name="base_mount" params="parent name color *origin">
       <joint name="${name}_joint" type="fixed">
@@ -150,6 +162,86 @@
          </collision>
       </link>
    </xacro:macro>
+
+   <xacro:macro name="gripper" params="parent name">
+      <joint name ="gripper_1" type="prismatic">
+         <origin xyz="0.0 0.0 ${radius_5 + length_6/2.0}" rpy="0.0 0.0 0.0"/>
+         <axis xyz="0 0 0"/>
+         <parent link="${parent}" />
+         <child link="gripper_link_1"/>
+         <limit lower="${radius_62/2.0}" upper="0.05" effort="100.0" velocity="1.0"/>
+      </joint>
+
+      <joint name ="gripper_2" type="prismatic">
+        <origin xyz="0.0 0.0 ${radius_5 + length_6/2.0}" rpy="0.0 0.0 0.0"/>
+        <parent link="${parent}" />
+        <child link="gripper_link_2"/>
+        <axis xyz="0.0 0.0 0.0"/>
+        <limit lower="-0.05" upper="${-radius_6/2.0}" effort="100.0" velocity="1.0"/>
+      </joint>
+
+     <joint name="gripper_frame_joint" type="fixed">
+        <origin xyz="0.0 0.0 ${radius_52*2 + length_62/2 + 0.01}" rpy="0.0 0.0 0.0"/>
+        <parent link="${parent}"/>
+        <child link="gripper_frame_cp"/>
+        <axis xyz="0.0 0.0 0.0"/>
+    </joint>
+
+     <link name="gripper_link_1">
+        <xacro:inertial_block mass="${mass_62}" length="${length_62}" radius="${radius_62}"/>
+        <visual>
+            <origin xyz="0.0 0.0 ${radius_62/2.0}" rpy="0.0 0.0 0.0"/>
+            <geometry>
+                <box size="${radius_62} ${radius_62*2} ${length_62}"/>
+            </geometry>
+            <material name="Grey"/>
+        </visual>
+
+        <collision>
+            <origin xyz="0.0 0.0 ${radius_62/2.0}" rpy="0.0 0.0 0.0"/>
+            <geometry>
+                <box size="${radius_62*2} ${radius_62*2} ${length_62}"/>
+            </geometry>
+        </collision>
+    </link>
+
+     <link name="gripper_link_2">
+        <xacro:inertial_block mass="${mass_62}" length="${length_62}" radius="${radius_62}"/>
+        <visual>
+            <origin xyz="0.0 0.0 ${radius_62/2.0}" rpy="0.0 0.0 0.0"/>
+            <geometry>
+                <box size="${radius_62} ${radius_62*2} ${length_62}"/>
+            </geometry>
+            <material name="Grey"/>
+        </visual>
+
+        <collision>
+            <origin xyz="0.0 0.0 ${radius_62/2.0}" rpy="0.0 0.0 0.0"/>
+            <geometry>
+                <box size="${radius_62*2} ${radius_62*2} ${length_62}"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <link name="gripper_frame_cp">
+        <xacro:inertial_block mass="${0.001}" length="${0.001}" radius="${0.001}"/>
+        <visual>
+            <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+            <geometry>
+                <box size="${0.001} ${0.001} ${0.001}"/>
+            </geometry>
+            <material name="Grey"/>
+        </visual>
+
+        <collision>
+            <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+            <geometry>
+                <box size="${0.001} ${0.001} ${0.001}"/>
+            </geometry>
+        </collision>
+    </link>
+   </xacro:macro>
+
 
    <xacro:macro name="cam" params="parent name">
       <!-- Camera joint-->

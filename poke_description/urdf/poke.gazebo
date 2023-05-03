@@ -8,7 +8,7 @@
    </gazebo>
    <gazebo>
       <plugin name="joint_state_publisher" filename="libgazebo_ros_joint_state_publisher.so">
-         <jointName>p0_joint, p1_joint, p2_joint, p3_joint</jointName>
+         <jointName>p0_joint, p1_joint, p2_joint, p3_joint, gripper_1, gripper_2</jointName>
       </plugin>
    </gazebo>
    <!-- Gazebo colors -->
