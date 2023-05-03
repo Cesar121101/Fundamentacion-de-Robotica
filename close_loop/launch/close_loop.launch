@@ -3,7 +3,7 @@
 
     <node name="controller" pkg="close_loop" type="controller.py" output="screen" launch-prefix="gnome-terminal --command"/>
     <node name="path_generator" pkg="close_loop" type="path_generator.py" output="screen" launch-prefix="gnome-terminal --command"/>
-    <node name="traffic_light" pkg="close_loop" type="traffic_light.py" output="screen" launch-prefix="gnome-terminal --command"/>
+    
     <!-- <node name="rqt_plot" pkg="rqt_plot" type="rqt_plot" output="screen"  args="/motor_input/data /error/data"/> -->
 
 </launch>

@@ -133,12 +133,15 @@ if __name__=='__main__':
             
             #If the trayectory is not finished the control value is obtain from the pid
             if(not(isFinishedT)) and color_light == 2.0:
+                print("Green")
                 linearVelocity = PID(errorDistance)
                 angularVelocity = 5*PID(errorRotation)
             elif (not(isFinishedT)) and color_light == 0.0:
+                print("Red")
                 linearVelocity = 0.0
                 angularVelocity = 0.0
             elif (not(isFinishedT)) and color_light == 1.0:
+                print("Yellow")
                 if linearVelocity > 0:
                     linearVelocity -= 1
                 else:
@@ -150,6 +153,7 @@ if __name__=='__main__':
             else:   #Else we set the linear and angular velocity to 0
                 linearVelocity = 0.0
                 angularVelocity = 0.0
+                color_light = 2.0
 
             #If we reach the point we reset real distance, real rotation and find the new point
             if errorDistance <= 0.01 and errorRotation <= 0.01:
