@@ -12,6 +12,7 @@ color_light = 2.0
 # Callback function to receive the image
 def camera_callback(msg):
     global cv_image
+    global color_light
 
     bridge = CvBridge()
     cv_image = bridge.imgmsg_to_cv2(msg, desired_encoding='passthrough')
@@ -43,7 +44,6 @@ def camera_callback(msg):
                                     param1=50, param2=30, minRadius=0, maxRadius=0)
     yellow_circles = cv2.HoughCircles(yellow_gray, cv2.HOUGH_GRADIENT, 1, 20,
                                       param1=50, param2=30, minRadius=0, maxRadius=0)
-
     # Draw the detected circles on the results
     if red_circles is not None:
         color_light = 0.0
