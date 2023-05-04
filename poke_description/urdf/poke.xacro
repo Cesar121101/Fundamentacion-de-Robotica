@@ -15,8 +15,8 @@
   <xacro:property name="length_6" value="0.07" /> <!--finger length-->
 
    <xacro:property name="radius_52" value="0.025" /><!--gripper base redius/width-->
-   <xacro:property name="radius_62" value="0.02" /> <!--finger radius/length-->
-   <xacro:property name="length_62" value="0.1" /> <!--finger length-->
+   <xacro:property name="radius_62" value="0.05" /> <!--finger radius/length-->
+   <xacro:property name="length_62" value="0.15" /> <!--finger length-->
 
    <xacro:property name="mass_62" value="0.2" />
 

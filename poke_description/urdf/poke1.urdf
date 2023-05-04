@@ -253,14 +253,16 @@
     <axis xyz="0 0 0"/>
     <parent link="p3_link"/>
     <child link="gripper_link_1"/>
-    <limit effort="30.0" lower="0.025" upper="0.5" velocity="1.0"/>
+    <limit effort="10.0" lower="0.025" upper="0.5" velocity="1.0"/>
+    <dynamics damping="1.0" stiffness="1000.0"/>
   </joint>
   <joint name="gripper_2" type="prismatic">
     <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.1"/>
     <parent link="p3_link"/>
     <child link="gripper_link_2"/>
     <axis xyz="0.0 0.0 0.0"/>
-    <limit effort="30.0" lower="-0.5" upper="-0.025" velocity="1.0"/>
+    <limit effort="10.0" lower="-0.5" upper="-0.025" velocity="1.0"/>
+    <dynamics damping="1.0" stiffness="1000.0"/>
   </joint>
   <joint name="gripper_frame_joint" type="fixed">
     <!--origin xyz="0.0 0.0 ${radius_52*2 + length_62/2 + 0.01}" rpy="0.0 0.0 0.0"/-->
@@ -272,7 +274,7 @@
   <link name="gripper_link_1">
     <inertial>
       <origin rpy="0 0 0" xyz="0 0 0.075"/>
-      <mass value="0.2"/>
+      <mass value="0.02"/>
       <inertia ixx="0.000541666666667" ixy="0.0" ixz="0.0" iyy="0.000541666666667" iyz="0.0" izz="0.000333333333333"/>
     </inertial>
     <visual>
@@ -282,25 +284,17 @@
       </geometry>
       <material name="Grey"/>
     </visual>
-    <collision name="gripper_touch_1">
+    <collision>
       <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.025"/>
       <geometry>
         <box size="0.025 0.1 0.15"/>
       </geometry>
-      <surface>
-        <friction>
-          <ode>
-            <slip1>1.0</slip1>
-            <slip2>1.0</slip2>
-          </ode>
-        </friction>
-      </surface>
     </collision>
   </link>
   <link name="gripper_link_2">
     <inertial>
       <origin rpy="0 0 0" xyz="0 0 0.075"/>
-      <mass value="0.2"/>
+      <mass value="0.02"/>
       <inertia ixx="0.000541666666667" ixy="0.0" ixz="0.0" iyy="0.000541666666667" iyz="0.0" izz="0.000333333333333"/>
     </inertial>
     <visual>
@@ -310,25 +304,11 @@
       </geometry>
       <material name="Grey"/>
     </visual>
-    <collision name="gripper_touch_2">
+    <collision>
       <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.025"/>
       <geometry>
         <box size="0.025 0.1 0.15"/>
       </geometry>
-      <surface>
-        <contact>
-          <ode>
-            <min_depth>0.003</min_depth>
-            <max_vel>0.0</max_vel>
-          </ode>
-        </contact>
-        <friction>
-          <ode>
-            <mu>10.0</mu>
-            <mu2>10.0</mu2>
-          </ode>
-        </friction>
-      </surface>
     </collision>
   </link>
   <link name="gripper_frame_cp">
@@ -411,4 +391,34 @@
       <mechanicalReduction>1</mechanicalReduction>
     </actuator>
   </transmission>
+  <gazebo reference="gripper_link_1">
+    <bounceThreshold>0.0</bounceThreshold>
+    <mu1>100</mu1>
+    <mu2>100</mu2>
+    <kp>1000.0</kp>
+    <kd>1.0</kd>
+    <minDepth>0.001</minDepth>
+    <maxVel>0.0</maxVel>
+    <torsional>
+        <ode>
+            <coefficient>1000</coefficient>
+            <slip>0</slip>
+        </ode>
+    </torsional>
+  </gazebo>
+  <gazebo reference="gripper_link_2">
+    <bounceThreshold>0.0</bounceThreshold>
+    <mu1>100</mu1>
+    <mu2>100</mu2>
+    <kp>1000.0</kp>
+    <kd>1.0</kd>
+    <minDepth>0.001</minDepth>
+    <maxVel>0.0</maxVel>
+    <torsional>
+        <ode>
+            <coefficient>1000</coefficient>
+            <slip>0</slip>
+        </ode>
+    </torsional>
+  </gazebo>
 </robot>

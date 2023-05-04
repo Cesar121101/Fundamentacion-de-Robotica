@@ -47,7 +47,7 @@
          <parent link="${parent}" />
          <child link="${name}_link" />
          <axis xyz="0 1 0" />
-         <limit lower="${llimit}" upper="${ulimit}" velocity="${vlimit}" effort="30" />
+         <limit lower="${llimit}" upper="${ulimit}" velocity="${vlimit}" effort="100" />
          <!--origin rpy="0 0 0" xyz="0.0 0.0 ${l1+jr}" /-->
       </joint>
       <link name="${name}_link">
@@ -93,7 +93,7 @@
          <parent link="${parent}" />
          <child link="${name}_link" />
          <axis xyz="0 1 0" />
-         <limit lower="${llimit}" upper="${ulimit}" velocity="${vlimit}" effort="30" />
+         <limit lower="${llimit}" upper="${ulimit}" velocity="${vlimit}" effort="100" />
          <origin rpy="0 0 0" xyz="0.0 0.0 ${l1+jr}" />
       </joint>
       <link name="${name}_link">
@@ -169,7 +169,7 @@
          <axis xyz="0 0 0"/>
          <parent link="${parent}" />
          <child link="gripper_link_1"/>
-         <limit lower="${radius_62/2.0}" upper="0.5" effort="100.0" velocity="1.0"/>
+         <limit lower="${radius_62/2.0}" upper="0.5" effort="30.0" velocity="1.0"/>
       </joint>
 
       <joint name ="gripper_2" type="prismatic">
@@ -177,7 +177,7 @@
         <parent link="${parent}" />
         <child link="gripper_link_2"/>
         <axis xyz="0.0 0.0 0.0"/>
-        <limit lower="-0.5" upper="${-radius_62/2.0}" effort="25.0" velocity="1.0"/>
+        <limit lower="-0.5" upper="${-radius_62/2.0}" effort="30.0" velocity="1.0"/>
       </joint>
 
      <joint name="gripper_frame_joint" type="fixed">
@@ -193,16 +193,25 @@
         <visual>
             <origin xyz="0.0 0.0 ${radius_62/2.0}" rpy="0.0 0.0 0.0"/>
             <geometry>
-                <box size="${radius_62} ${radius_62*2} ${length_62}"/>
+                <box size="${radius_62/2} ${radius_62*2} ${length_62}"/>
             </geometry>
             <material name="Grey"/>
         </visual>
 
-        <collision>
+        <collision name="gripper_touch_1">
             <origin xyz="0.0 0.0 ${radius_62/2.0}" rpy="0.0 0.0 0.0"/>
             <geometry>
-                <box size="${radius_62*2} ${radius_62*2} ${length_62}"/>
+                <box size="${radius_62/2} ${radius_62*2} ${length_62}"/>
             </geometry>
+
+            <surface>
+               <friction>
+                  <ode>
+                  <slip1>1.0</slip1>
+                  <slip2>1.0</slip2>
+                  </ode>
+               </friction>
+            </surface>
         </collision>
     </link>
 
@@ -211,16 +220,30 @@
         <visual>
             <origin xyz="0.0 0.0 ${radius_62/2.0}" rpy="0.0 0.0 0.0"/>
             <geometry>
-                <box size="${radius_62} ${radius_62*2} ${length_62}"/>
+                <box size="${radius_62/2} ${radius_62*2} ${length_62}"/>
             </geometry>
             <material name="Grey"/>
         </visual>
 
-        <collision>
+        <collision name="gripper_touch_2">
             <origin xyz="0.0 0.0 ${radius_62/2.0}" rpy="0.0 0.0 0.0"/>
             <geometry>
-                <box size="${radius_62*2} ${radius_62*2} ${length_62}"/>
+                <box size="${radius_62/2} ${radius_62*2} ${length_62}"/>
             </geometry>
+            <surface>
+               <contact>
+                  <ode>
+                     <min_depth>0.003</min_depth>
+                     <max_vel>0.0</max_vel>
+                  </ode>
+               </contact>
+               <friction>
+                  <ode>
+                     <mu>10.0</mu>
+                     <mu2>10.0</mu2>
+                  </ode>
+               </friction>
+            </surface>
         </collision>
     </link>
 
