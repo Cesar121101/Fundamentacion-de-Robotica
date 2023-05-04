@@ -3,7 +3,7 @@ TODO
 $ roslaunch gazebo_ros_link_attacher test_attacher.launch
 $ roslaunch reto_vision reto_vision.launch 
 
-# Seguramente no aparece el cuadrado, hay que agregarlo
+# Mueve el cuadrado
 $ rostopic pub /arm_controller/command trajectory_msgs/JointTrajectory '{joint_names: ["p0_joint","p1_joint","p2_joint","p3_joint","gripper_1","gripper_2"], points: [{positions: [0.0,2.3,-1.0,1.57,0.0627,-0.0627],time_from_start:[1.0,0.0]}]}' -1
 
 
