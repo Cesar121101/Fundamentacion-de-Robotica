@@ -142,14 +142,10 @@ if __name__=='__main__':
                 angularVelocity = 0.0
             elif (not(isFinishedT)) and color_light == 1.0:
                 print("Yellow")
-                if linearVelocity > 0:
-                    linearVelocity -= 1
-                else:
-                    linearVelocity = 0
-                if angularVelocity > 0:
-                    angularVelocity -= 1
-                else:
-                    angularVelocity = 0
+                if(linearVelocity > 0):
+                    linearVelocity -= 1.0
+                if(angularVelocity > 0):
+                    angularVelocity -= 1.0
             else:   #Else we set the linear and angular velocity to 0
                 linearVelocity = 0.0
                 angularVelocity = 0.0

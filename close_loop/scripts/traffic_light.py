@@ -39,11 +39,11 @@ def camera_callback(msg):
 
     # Detect circles in the results
     red_circles = cv2.HoughCircles(red_gray, cv2.HOUGH_GRADIENT, 1, 20,
-                                  param1=50, param2=30, minRadius=0, maxRadius=0)
+                                  param1=50, param2=30, minRadius=10, maxRadius=0)
     green_circles = cv2.HoughCircles(green_gray, cv2.HOUGH_GRADIENT, 1, 20,
-                                    param1=50, param2=30, minRadius=0, maxRadius=0)
+                                    param1=50, param2=30, minRadius=10, maxRadius=0)
     yellow_circles = cv2.HoughCircles(yellow_gray, cv2.HOUGH_GRADIENT, 1, 20,
-                                      param1=50, param2=30, minRadius=0, maxRadius=0)
+                                      param1=50, param2=30, minRadius=10, maxRadius=0)
     # Draw the detected circles on the results
     if red_circles is not None:
         color_light = 0.0
@@ -85,8 +85,8 @@ if __name__=='__main__':
     upper_red = np.array([50, 50, 255])
     lower_green = np.array([0, 100, 0])
     upper_green = np.array([50, 255, 50])
-    lower_yellow = np.array([0, 200, 200])
-    upper_yellow = np.array([50, 255, 255])
+    lower_yellow = np.array([0, 204, 204])
+    upper_yellow = np.array([255, 255, 255])
 
     #Run the node
     while not rospy.is_shutdown():
