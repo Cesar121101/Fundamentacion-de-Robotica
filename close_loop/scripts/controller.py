@@ -116,7 +116,7 @@ if __name__=='__main__':
     while not rospy.is_shutdown():
 
         # If the calculated points exists
-        if prevPoint != point and isFinishMovement == 0.0:
+        if prevPoint != point:
             rate.sleep() # make a wait for making sure previous movements had stopped
             prevTime = currentTime
             currentTime = rospy.get_time()  # Obtain the time
@@ -142,14 +142,18 @@ if __name__=='__main__':
                 angularVelocity = 0.0
             elif (not(isFinishedT)) and color_light == 1.0:
                 print("Yellow")
-                if(linearVelocity > 0):
-                    linearVelocity -= 0.1
-                if(angularVelocity > 0):
-                    angularVelocity -= 0.1
+                linearVelocity = 0.2
+                angularVelocity = 0.0
+                rate.sleep()
             else:   #Else we set the linear and angular velocity to 0
                 linearVelocity = 0.0
                 angularVelocity = 0.0
                 color_light = 2.0
+            
+
+            #The value of the linear and angular velocity is obtained from the PID
+            msgRobot.linear.x = linearVelocity
+            msgRobot.angular.z = angularVelocity
 
             #If we reach the point we reset real distance, real rotation and find the new point
             if errorDistance <= 0.01 and errorRotation <= 0.01:
@@ -159,12 +163,6 @@ if __name__=='__main__':
                 point += 1
                 isFinishMovement = 1.0
                 rate.sleep()
-            else:
-                isFinishMovement = 0.0
-
-            #The value of the linear and angular velocity is obtained from the PID
-            msgRobot.linear.x = linearVelocity
-            msgRobot.angular.z = angularVelocity
 
             # Print information
             print("WR: " + str(wr))
