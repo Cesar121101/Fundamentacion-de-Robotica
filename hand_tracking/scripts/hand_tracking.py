@@ -6,11 +6,12 @@ from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 
 # Variables globales para el seguimiento de objetos
-object_lower_color = np.array[(0, 100, 100)]
-object_upper_color = np.array[(10, 255, 255)]
+object_lower_color = np.array([0, 100, 100])
+object_upper_color = np.array([10, 255, 255])
 object_center = None
+contador = 0
 
-# Funcion de devolucion de llamada para la imagen de la camara
+# Callback function
 def image_callback(img_msg):
     global object_center
     
@@ -50,7 +51,7 @@ def image_callback(img_msg):
     cv2.waitKey(1)
 
     # Controlar el robot simulado en Gazebo con los movimientos detectados
-    # Aqui es donde tendrias que escribir tu propio código para controlar el robot simulado en Gazebo
+    # Rvis controller
 
 # Stop Condition
 def stop():
@@ -62,3 +63,8 @@ if __name__=='__main__':
 
     # Configurar la suscripcion a la imagen de la camara
     rospy.Subscriber("/usb_cam/image_raw", Image, image_callback)
+
+    #Run the node
+    while not rospy.is_shutdown():
+        print("contador: \n" + str(contador))
+        contador += 1
