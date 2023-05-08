@@ -1,70 +1,45 @@
-#!/usr/bin/env python
-import rospy
 import cv2
 import numpy as np
-from sensor_msgs.msg import Image
-from cv_bridge import CvBridge
 
-# Variables globales para el seguimiento de objetos
-object_lower_color = np.array([0, 100, 100])
-object_upper_color = np.array([10, 255, 255])
-object_center = None
-contador = 0
+# Crear un objeto de captura de vídeo
+cap = cv2.VideoCapture(0)
 
-# Callback function
-def image_callback(img_msg):
-    global object_center
-    
-    bridge = CvBridge()
-    # Convertir el mensaje de imagen a una imagen de OpenCV
-    cv_image = bridge.imgmsg_to_cv2(img_msg, "bgr8")
+# Definir rango de color de la piel en el espacio de color HSV
+skin_lower = np.array([0, 20, 70], dtype=np.uint8)
+skin_upper = np.array([20, 255, 255], dtype=np.uint8)
 
-    # Redimensionar la imagen para reducir el tiempo de procesamiento
-    small_frame = cv2.resize(cv_image, (0, 0), fx=0.25, fy=0.25)
+while True:
+    # Leer cada fotograma del vídeo
+    ret, frame = cap.read()
 
-    # Convertir la imagen a espacio de color HSV para el seguimiento de objetos
-    hsv_frame = cv2.cvtColor(small_frame, cv2.COLOR_BGR2HSV)
+    # Cambiar el espacio de color del fotograma de BGR a HSV
+    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
-    # Crear una mascara para detectar el objeto de interes en la imagen
-    mask = cv2.inRange(hsv_frame, object_lower_color, object_upper_color)
-    mask = cv2.erode(mask, None, iterations=2)
-    mask = cv2.dilate(mask, None, iterations=2)
+    # Crear una máscara utilizando la técnica de detección de la piel
+    skin_mask = cv2.inRange(hsv, skin_lower, skin_upper)
 
-    # Encontrar contornos en la mascara y determinar el centro del objeto de interes
-    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    # Aplicar operaciones de morfología para eliminar el ruido
+    kernel = np.ones((3,3), np.uint8)
+    skin_mask = cv2.erode(skin_mask, kernel, iterations=1)
+    skin_mask = cv2.dilate(skin_mask, kernel, iterations=1)
+
+    # Encontrar los contornos de la mano en la máscara de piel
+    contours = cv2.findContours(skin_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+    # Dibujar un cuadro delimitador alrededor de la mano
     if len(contours) > 0:
-        c = max(contours, key=cv2.contourArea)
-        M = cv2.moments(c)
-        if M["m00"] != 0:
-            object_center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
-        else:
-            object_center = None
-    else:
-        object_center = None
+        max_contour = max(contours, key=lambda x: cv2.contourArea(x, False))
+        if max_contour.size >= 3:
+            x,y,w,h = cv2.boundingRect(max_contour)
+            cv2.rectangle(frame, (x,y), (x+w,y+h), (0,255,0), 2)
 
-    # Dibujar un circulo en el centro del objeto de interes (si se encuentra)
-    if object_center is not None:
-        cv2.circle(small_frame, object_center, 5, (0, 0, 255), -1)
+    # Mostrar el fotograma en una ventana
+    cv2.imshow('Hand Tracking', frame)
 
-    # Mostrar la imagen con el objeto de interes destacado
-    cv2.imshow("Hand Tracking", small_frame)
-    cv2.waitKey(1)
+    # Esperar a que se presione la tecla 'q' para salir del bucle
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
 
-    # Controlar el robot simulado en Gazebo con los movimientos detectados
-    # Rvis controller
-
-# Stop Condition
-def stop():
-    print("Stopping")
-
-if __name__=='__main__':
-    # Inicializar el nodo ROS
-    rospy.init_node('hand_tracking')
-
-    # Configurar la suscripcion a la imagen de la camara
-    rospy.Subscriber("/usb_cam/image_raw", Image, image_callback)
-
-    #Run the node
-    while not rospy.is_shutdown():
-        print("contador: \n" + str(contador))
-        contador += 1
+# Liberar los recursos
+cap.release()
+cv2.destroyAllWindows()
