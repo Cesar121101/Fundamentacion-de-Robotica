@@ -2,17 +2,22 @@
 import rospy
 import cv2
 import numpy as np
-from sensor_msgs.msg import Image
-from cv_bridge import CvBridge
 import mediapipe as mp
 from std_msgs.msg import Float32
+from hand_tracking.msg import hand_cords
 
 #Global variables
+handObj = hand_cords()
+handObj.x = 0.0
+handObj.y = 0.0
+handObj.status = "close"
+
+#Import ML model
 mp_hands = mp.solutions.hands
 hands = mp_hands.Hands()
-
 mp_drawing = mp.solutions.drawing_utils
 
+#Capture video from the camera
 cap = cv2.VideoCapture(0)
 
 # Create tracker
@@ -39,8 +44,7 @@ if __name__=='__main__':
     rospy.on_shutdown(stop)
 
     # Setup Publishers and Suscribers
-    object_pub = rospy.Publisher("object_coordinates", Float32, queue_size=10)
-    finger_pub = rospy.Publisher("finger_coordinates", Float32, queue_size=10)
+    hand_pub = rospy.Publisher("hand_coordinates", hand_cords, queue_size=1)
 
     # rospy.Subscriber('/usb_cam/image_raw', Image, image_callback)
 
@@ -63,7 +67,7 @@ if __name__=='__main__':
             y = int(bbox[1] + bbox[3]/2)
             # Draw a circle in the middle of the box
             cv2.circle(frame, (x, y), 5, (0, 0, 255), -1)
-            print("X,Y coordinates of Box:" + str(x) + (" ") + str(y))
+            # print("X,Y coordinates of Box:" + str(x) + (" ") + str(y))
 
         # Convert the frame to RGB
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -83,11 +87,26 @@ if __name__=='__main__':
                 x2, y2 = int(hand_landmarks.landmark[4].x * frame.shape[1]), int(hand_landmarks.landmark[4].y * frame.shape[0])
                 x3, y3 = int(hand_landmarks.landmark[8].x * frame.shape[1]), int(hand_landmarks.landmark[8].y * frame.shape[0])
 
+                #Print hand and Finger Coordinates
                 print("X,Y coordinates of the Hand:" + str(x1) + (" ") + str(y1))
-
+                print("F1:" + str(x2) + (" ") + str(y2))
+                print("F2:" + str(x3) + (" ") + str(y3))
+                
+            #Show tracked frame
             cv2.imshow('MediaPipe Hands', frame)
             # Check if the user pressed the 'q' key
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
-        object_pub.publish(1.0)
-        finger_pub.publish(2.0)
+        
+        #Verify the status of the hand
+        if((x3-x2 < 20) and (y3-y2 < 20)):
+            handObj.status = "close"
+        else: 
+            handObj.status = "open"
+        
+        # Assing values to hand object
+        handObj.x = x1
+        handObj.y = y1
+
+        # Publish the coordinates and the status
+        hand_pub.publish(handObj)

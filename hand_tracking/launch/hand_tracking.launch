@@ -1,0 +1,7 @@
+<?xml version="1.0" ?>
+<launch>
+
+    <node name="Hand_Tracking" pkg="hand_tracking" type="trackers.py" output="screen" launch-prefix="gnome-terminal --command"/>
+    <node name="Listener" pkg="hand_tracking" type="listener.py" output="screen" launch-prefix="gnome-terminal --command"/>
+
+</launch>
