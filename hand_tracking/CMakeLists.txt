@@ -104,7 +104,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES hand_tracking
-#  CATKIN_DEPENDS rospy std_msgs
+#  CATKIN_DEPENDS rospy std_msgs cv2 numpy sensor_msgs.msg cv_bridge mediapipe
 #  DEPENDS system_lib
 )
 

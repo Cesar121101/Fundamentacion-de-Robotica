@@ -1,45 +1,95 @@
+#!/usr/bin/env python
+import rospy
 import cv2
 import numpy as np
+from sensor_msgs.msg import Image
+from cv_bridge import CvBridge
+import mediapipe as mp
 
-# Crear un objeto de captura de vídeo
+#Global variables
+mp_hands = mp.solutions.hands
+hands = mp_hands.Hands()
+
+mp_drawing = mp.solutions.drawing_utils
+
 cap = cv2.VideoCapture(0)
 
-# Definir rango de color de la piel en el espacio de color HSV
-skin_lower = np.array([0, 20, 70], dtype=np.uint8)
-skin_upper = np.array([20, 255, 255], dtype=np.uint8)
+# Create tracker
+tracker = cv2.TrackerCSRT_create()
 
-while True:
-    # Leer cada fotograma del vídeo
-    ret, frame = cap.read()
+# Read first frame
+ret, frame = cap.read()
 
-    # Cambiar el espacio de color del fotograma de BGR a HSV
-    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+# Define object to track
+bbox = cv2.selectROI(frame, False)
 
-    # Crear una máscara utilizando la técnica de detección de la piel
-    skin_mask = cv2.inRange(hsv, skin_lower, skin_upper)
+# Initialize tracker
+tracker.init(frame, bbox)
 
-    # Aplicar operaciones de morfología para eliminar el ruido
-    kernel = np.ones((3,3), np.uint8)
-    skin_mask = cv2.erode(skin_mask, kernel, iterations=1)
-    skin_mask = cv2.dilate(skin_mask, kernel, iterations=1)
+# bridge = CvBridge()
 
-    # Encontrar los contornos de la mano en la máscara de piel
-    contours = cv2.findContours(skin_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+# def image_callback(msg):
+#     global cv_image
+#     cv_image = bridge.imgmsg_to_cv2(msg, desired_encoding='passthrough')
 
-    # Dibujar un cuadro delimitador alrededor de la mano
-    if len(contours) > 0:
-        max_contour = max(contours, key=lambda x: cv2.contourArea(x, False))
-        if max_contour.size >= 3:
-            x,y,w,h = cv2.boundingRect(max_contour)
-            cv2.rectangle(frame, (x,y), (x+w,y+h), (0,255,0), 2)
+# Stop Condition
+def stop():
+  print("Stopping")
 
-    # Mostrar el fotograma en una ventana
-    cv2.imshow('Hand Tracking', frame)
+if __name__=='__main__':
+    print("Hand Tracking is Running")
+    # Initialize and Setup node at 100Hz
+    rospy.init_node("Hand_Tracking")
+    rate = rospy.Rate(100)
+    rospy.on_shutdown(stop)
 
-    # Esperar a que se presione la tecla 'q' para salir del bucle
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
+    # Setup Publishers and Suscribers
+    object_pub = rospy.Publisher('object_coordinates', str, queue_size=10)
+    finger_pub = rospy.Publisher('finger_coordinates', str, queue_size=10)
 
-# Liberar los recursos
-cap.release()
-cv2.destroyAllWindows()
+    # rospy.Subscriber('/usb_cam/image_raw', Image, image_callback)
+
+    #Run the node
+    while not rospy.is_shutdown():
+        # Read a frame from the video capture object
+        ret, frame = cap.read()
+
+        # Update tracker with new frame
+        success, bbox = tracker.update(frame)
+
+        # if success draw the box
+        if success:
+            # Box coordinates to int
+            bbox = [int(i) for i in bbox]
+            # Draw box
+            cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[0]+bbox[2], bbox[1]+bbox[3]), (0, 255, 0), 2)
+            # Calculate center coordinates
+            x = int(bbox[0] + bbox[2]/2)
+            y = int(bbox[1] + bbox[3]/2)
+            # Draw a circle in the middle of the box
+            cv2.circle(frame, (x, y), 5, (0, 0, 255), -1)
+            print("X,Y coordinates of Box:" + str(x) + (" ") + str(y))
+
+        # Convert the frame to RGB
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+        # Detect the hands in the frame
+        results = hands.process(frame)
+        
+        # Check if any hands were detected
+        if results.multi_hand_landmarks:
+            # Loop through each detected hand
+            for hand_landmarks in results.multi_hand_landmarks:
+                
+                mp_drawing.draw_landmarks(frame, hand_landmarks, mp_hands.HAND_CONNECTIONS)
+                #Obtain x,y coordinates of the fingers
+                x1, y1 = int(hand_landmarks.landmark[1].x * frame.shape[1]), int(hand_landmarks.landmark[1].y * frame.shape[1])
+                x2, y2 = int(hand_landmarks.landmark[2].x * frame.shape[1]), int(hand_landmarks.landmark[2].y * frame.shape[1])
+
+                print("X,Y coordinates of Finger 1:" + str(x1) + (" ") + str(y1))
+                print("X,Y coordinates of Finger 2:" + str(x2) + (" ") + str(y2))
+
+            cv2.imshow('MediaPipe Hands', frame)
+            # Check if the user pressed the 'q' key
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
