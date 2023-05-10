@@ -88,5 +88,5 @@ if __name__=='__main__':
             # Check if the user pressed the 'q' key
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
-        object_pub.publish(1.0)
+        object_pub.publish(3.0)
         finger_pub.publish(2.0)
