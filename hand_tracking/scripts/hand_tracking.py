@@ -1,10 +1,11 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3.7
 import rospy
 import cv2
 import numpy as np
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 import mediapipe as mp
+from std_msgs.msg import Float32
 
 #Global variables
 mp_hands = mp.solutions.hands
@@ -26,12 +27,6 @@ bbox = cv2.selectROI(frame, False)
 # Initialize tracker
 tracker.init(frame, bbox)
 
-# bridge = CvBridge()
-
-# def image_callback(msg):
-#     global cv_image
-#     cv_image = bridge.imgmsg_to_cv2(msg, desired_encoding='passthrough')
-
 # Stop Condition
 def stop():
   print("Stopping")
@@ -44,8 +39,8 @@ if __name__=='__main__':
     rospy.on_shutdown(stop)
 
     # Setup Publishers and Suscribers
-    object_pub = rospy.Publisher('object_coordinates', str, queue_size=10)
-    finger_pub = rospy.Publisher('finger_coordinates', str, queue_size=10)
+    object_pub = rospy.Publisher("object_coordinates", Float32, queue_size=10)
+    finger_pub = rospy.Publisher("finger_coordinates", Float32, queue_size=10)
 
     # rospy.Subscriber('/usb_cam/image_raw', Image, image_callback)
 
@@ -93,3 +88,5 @@ if __name__=='__main__':
             # Check if the user pressed the 'q' key
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
+        object_pub.publish(1.0)
+        finger_pub.publish(2.0)
