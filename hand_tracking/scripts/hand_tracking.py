@@ -77,16 +77,17 @@ if __name__=='__main__':
             for hand_landmarks in results.multi_hand_landmarks:
                 
                 mp_drawing.draw_landmarks(frame, hand_landmarks, mp_hands.HAND_CONNECTIONS)
-                #Obtain x,y coordinates of the fingers
-                x1, y1 = int(hand_landmarks.landmark[4].x * frame.shape[1]), int(hand_landmarks.landmark[4].y * frame.shape[0])
-                x2, y2 = int(hand_landmarks.landmark[8].x * frame.shape[1]), int(hand_landmarks.landmark[8].y * frame.shape[0])
+                #Obtain x,y coordinates of the Hand
+                x1, y1 = int(hand_landmarks.landmark[9].x * frame.shape[1]), int(hand_landmarks.landmark[9].y * frame.shape[0])
+                #Obtain x,y coordinates of the hand to know if the hand is open or close
+                x2, y2 = int(hand_landmarks.landmark[4].x * frame.shape[1]), int(hand_landmarks.landmark[4].y * frame.shape[0])
+                x3, y3 = int(hand_landmarks.landmark[8].x * frame.shape[1]), int(hand_landmarks.landmark[8].y * frame.shape[0])
 
-                print("X,Y coordinates of Finger 1:" + str(x1) + (" ") + str(y1))
-                print("X,Y coordinates of Finger 2:" + str(x2) + (" ") + str(y2))
+                print("X,Y coordinates of the Hand:" + str(x1) + (" ") + str(y1))
 
             cv2.imshow('MediaPipe Hands', frame)
             # Check if the user pressed the 'q' key
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
-        object_pub.publish(11.0)
+        object_pub.publish(1.0)
         finger_pub.publish(2.0)
