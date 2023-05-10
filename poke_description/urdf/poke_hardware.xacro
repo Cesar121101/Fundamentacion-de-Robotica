@@ -166,7 +166,7 @@
    <xacro:macro name="gripper" params="parent name">
       <joint name ="gripper_1" type="prismatic">
          <origin xyz="0.0 0.0 ${radius_52 + length_62/2.0}" rpy="0.0 0.0 0.0"/>
-         <axis xyz="0 0 0"/>
+         <axis xyz="1 0 0"/>
          <parent link="${parent}" />
          <child link="gripper_link_1"/>
          <limit lower="${radius_62/2.0}" upper="0.5" effort="30.0" velocity="1.0"/>
@@ -176,94 +176,75 @@
         <origin xyz="0.0 0.0 ${radius_52 + length_62/2.0}" rpy="0.0 0.0 0.0"/>
         <parent link="${parent}" />
         <child link="gripper_link_2"/>
-        <axis xyz="0.0 0.0 0.0"/>
+        <axis xyz="1 0 0"/>
         <limit lower="-0.5" upper="${-radius_62/2.0}" effort="30.0" velocity="1.0"/>
       </joint>
 
      <joint name="gripper_frame_joint" type="fixed">
         <!--origin xyz="0.0 0.0 ${radius_52*2 + length_62/2 + 0.01}" rpy="0.0 0.0 0.0"/-->
-        <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+        <axis xyz="0 0 0" />
+         <!-- Use the joint to orientate the camera -->
+         <origin xyz="0 0 ${.8*jr}" rpy="0 ${-PI/2} 0" />
         <parent link="${parent}"/>
         <child link="gripper_frame_cp"/>
-        <axis xyz="0.0 0.0 0.0"/>
     </joint>
 
      <link name="gripper_link_1">
         <xacro:inertial_block mass="${mass_62}" length="${length_62}" radius="${radius_62}"/>
         <visual>
-            <origin xyz="0.0 0.0 ${radius_62/2.0}" rpy="0.0 0.0 0.0"/>
+            <origin xyz="${radius_62/2} 0.0 ${radius_62/2.0}" rpy="0.0 0.0 0.0"/>
             <geometry>
                 <box size="${radius_62/2} ${radius_62*2} ${length_62}"/>
             </geometry>
-            <material name="Grey"/>
         </visual>
 
-        <collision name="gripper_touch_1">
-            <origin xyz="0.0 0.0 ${radius_62/2.0}" rpy="0.0 0.0 0.0"/>
+        <collision>
+            <origin xyz="${radius_62/2} 0.0 ${radius_62/2.0}" rpy="0.0 0.0 0.0"/>
             <geometry>
                 <box size="${radius_62/2} ${radius_62*2} ${length_62}"/>
             </geometry>
-
-            <surface>
-               <friction>
-                  <ode>
-                  <slip1>1.0</slip1>
-                  <slip2>1.0</slip2>
-                  </ode>
-               </friction>
-            </surface>
         </collision>
     </link>
 
      <link name="gripper_link_2">
         <xacro:inertial_block mass="${mass_62}" length="${length_62}" radius="${radius_62}"/>
         <visual>
-            <origin xyz="0.0 0.0 ${radius_62/2.0}" rpy="0.0 0.0 0.0"/>
+            <origin xyz="${-radius_62/2} 0.0 ${radius_62/2.0}" rpy="0.0 0.0 0.0"/>
             <geometry>
                 <box size="${radius_62/2} ${radius_62*2} ${length_62}"/>
             </geometry>
-            <material name="Grey"/>
         </visual>
 
-        <collision name="gripper_touch_2">
-            <origin xyz="0.0 0.0 ${radius_62/2.0}" rpy="0.0 0.0 0.0"/>
+        <collision>
+            <origin xyz="{-radius_62/2} 0.0 ${radius_62/2.0}" rpy="0.0 0.0 0.0"/>
             <geometry>
                 <box size="${radius_62/2} ${radius_62*2} ${length_62}"/>
             </geometry>
-            <surface>
-               <contact>
-                  <ode>
-                     <min_depth>0.003</min_depth>
-                     <max_vel>0.0</max_vel>
-                  </ode>
-               </contact>
-               <friction>
-                  <ode>
-                     <mu>10.0</mu>
-                     <mu2>10.0</mu2>
-                  </ode>
-               </friction>
-            </surface>
         </collision>
     </link>
 
     <link name="gripper_frame_cp">
-        <xacro:inertial_block mass="${0.001}" length="${0.001}" radius="${0.001}"/>
         <visual>
-            <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+            <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
-                <box size="${0.1} ${0.05} ${0.05}"/>
+               <box size="${jr/2} ${.75*jr} ${jr}" />
             </geometry>
-            <material name="Grey"/>
-        </visual>
-
-        <collision>
-            <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+            <material name="grey">
+               <color rgba="0.2 0.2 0.2 1.0" />
+            </material>
+         </visual>
+         <collision>
+            <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
-                <box size="${0.1} ${0.05} ${0.05}"/>
+               <box size="${jr/2} ${.75*jr} ${jr}" />
             </geometry>
-        </collision>
-    </link>
+         </collision>
+         <inertial>
+            <mass value="0.01" />
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6" />
+         </inertial>
+      </link>
    </xacro:macro>
 
 

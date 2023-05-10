@@ -15,6 +15,7 @@ message = JointTrajectory()
 points = JointTrajectoryPoint()
 req = AttachRequest()
 
+
 def activate_callback(msg):
     global recvmsg
     print(msg.data)

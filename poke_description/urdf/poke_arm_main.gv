@@ -27,6 +27,6 @@ node [shape=ellipse, color=blue, fontcolor=blue];
 "gripper_1" -> "gripper_link_1"
 "p3_link" -> "gripper_2" [label="xyz: 0 0 0.1 \nrpy: 0 -0 0"]
 "gripper_2" -> "gripper_link_2"
-"p3_link" -> "gripper_frame_joint" [label="xyz: 0 0 0 \nrpy: 0 -0 0"]
+"p3_link" -> "gripper_frame_joint" [label="xyz: 0 0 0.036 \nrpy: 0 -1.5708 0"]
 "gripper_frame_joint" -> "gripper_frame_cp"
 }

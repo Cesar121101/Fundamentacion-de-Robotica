@@ -14,6 +14,8 @@
         <joint name="p1_joint" />
         <joint name="p2_joint" />
         <joint name="p3_joint" />
+        <joint name="gripper_1"/>
+        <joint name="gripper_2"/>
     </group>
     <!--END EFFECTOR: Purpose: Represent information about an end effector.-->
     <end_effector name="robot_eef" parent_link="p3_link" group="arm" />

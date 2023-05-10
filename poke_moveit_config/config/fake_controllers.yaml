@@ -5,3 +5,5 @@ controller_list:
       - p1_joint
       - p2_joint
       - p3_joint
+      - gripper_1
+      - gripper_2

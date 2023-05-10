@@ -17,7 +17,7 @@
     <arg name="z" default="0.0"/>
     <arg name="Y" default="0"/>
 
-  <param name="robot_description" command="$(find xacro)/xacro.py '$(find poke_description)/urdf/poke1.urdf'"/>
+  <param name="robot_description" command="$(find xacro)/xacro.py '$(find poke_description)/urdf/poke.urdf'"/>
 
   <node name="poke_spawn" pkg="gazebo_ros" type="spawn_model" output="screen"
    args="-urdf -param robot_description -model poke_arm -x $(arg x) -y $(arg y) -z $(arg z) -Y $(arg Y)" />
