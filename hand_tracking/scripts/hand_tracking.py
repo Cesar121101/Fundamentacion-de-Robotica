@@ -78,8 +78,8 @@ if __name__=='__main__':
                 
                 mp_drawing.draw_landmarks(frame, hand_landmarks, mp_hands.HAND_CONNECTIONS)
                 #Obtain x,y coordinates of the fingers
-                x1, y1 = int(hand_landmarks.landmark[1].x * frame.shape[1]), int(hand_landmarks.landmark[1].y * frame.shape[1])
-                x2, y2 = int(hand_landmarks.landmark[2].x * frame.shape[1]), int(hand_landmarks.landmark[2].y * frame.shape[1])
+                x1, y1 = int(hand_landmarks.landmark[4].x * frame.shape[1]), int(hand_landmarks.landmark[4].y * frame.shape[0])
+                x2, y2 = int(hand_landmarks.landmark[8].x * frame.shape[1]), int(hand_landmarks.landmark[8].y * frame.shape[0])
 
                 print("X,Y coordinates of Finger 1:" + str(x1) + (" ") + str(y1))
                 print("X,Y coordinates of Finger 2:" + str(x2) + (" ") + str(y2))
