@@ -8,3 +8,10 @@ controller_list:
       - p1_joint
       - p2_joint
       - p3_joint
+  - name: gripper
+    action_ns: follow_joint_trajectory
+    type: FollowJointTrajectory
+    default: True
+    joints:
+      - gripper_1
+      - gripper_2

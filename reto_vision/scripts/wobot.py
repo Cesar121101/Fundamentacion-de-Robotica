@@ -23,13 +23,14 @@ def activate_callback(msg):
 
 
 if __name__ == '__main__':
-    pub = rospy.Publisher("/arm_controller/command", JointTrajectory, queue_size=10)
+    pub = rospy.Publisher("/gripper/command", JointTrajectory, queue_size=10)
     sub_wl = rospy.Subscriber("wl", String, activate_callback)
     rospy.init_node("wobot")
     rate = rospy.Rate(100)
 
 
     while not rospy.is_shutdown():
+        print(recvmsg)
         rospy.wait_for_service('/link_attacher_node/attach')
         rospy.wait_for_service('/link_attacher_node/detach')
 
@@ -37,16 +38,16 @@ if __name__ == '__main__':
         detach_srv = rospy.ServiceProxy('/link_attacher_node/detach', Attach)
 
 
-        message.joint_names = ["p0_joint","p1_joint","p2_joint","p3_joint","gripper_1","gripper_2"]
+        message.joint_names = ["gripper_1","gripper_2"]
 
         if recvmsg == "a":
-            points.positions = [0.0,2.3,-1.0,1.57,0.0,0.0]
+            points.positions = [0.025,-0.025]
 
         elif recvmsg == "b":
-            points.positions = [0.0,2.3,-1.0,1.57,0.0627,-0.0627]
+            points.positions = [0.27,-0.27]
 
         elif recvmsg == "d":
-            req.model_name_1 = "poke_arm"
+            req.model_name_1 = "robot"
             req.link_name_1 = "p3_link"
             req.model_name_2 = "my_box_1"
             req.link_name_2 = "my_box_link"
@@ -54,7 +55,7 @@ if __name__ == '__main__':
             attach_srv.call(req)
 
         elif recvmsg == "e":
-            req.model_name_1 = "poke_arm"
+            req.model_name_1 = "robot"
             req.link_name_1 = "p3_link"
             req.model_name_2 = "my_box_1"
             req.link_name_2 = "my_box_link"
@@ -66,7 +67,7 @@ if __name__ == '__main__':
             print("...")
 
         else:
-            points.positions = [0.0,0.0,0.0,0.0,0.0,0.0]
+            points.positions = [0.025,-0.025]
 
         points.time_from_start = rospy.Duration(2.0)
         message.points = [points]

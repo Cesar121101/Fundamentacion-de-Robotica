@@ -26,3 +26,19 @@ arm_position_controller:
       d: 1
       i: 1
       i_clamp: 1
+gripper:
+  type: position_controllers/JointTrajectoryController
+  joints:
+    - gripper_1
+    - gripper_2
+  gains:
+    gripper_1:
+      p: 100
+      d: 1
+      i: 1
+      i_clamp: 1
+    gripper_2:
+      p: 100
+      d: 1
+      i: 1
+      i_clamp: 1

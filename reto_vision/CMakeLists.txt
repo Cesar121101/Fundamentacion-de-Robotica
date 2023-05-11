@@ -14,6 +14,7 @@ find_package(catkin REQUIRED COMPONENTS
   urdf
   std_msgs
   trajectory_msgs
+  moveit_commander
 )
 
 ## System dependencies are found with CMake's conventions
