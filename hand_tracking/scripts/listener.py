@@ -9,6 +9,7 @@ def hand_callback(msg):
     handCords.x = msg.x
     handCords.y = msg.y
     handCords.status = msg.status
+    handCords.orientation = msg.orientation
 
 # Stop Condition
 def stop():
@@ -28,3 +29,4 @@ if __name__=='__main__':
     while not rospy.is_shutdown():
        print("Hand X,Y: " + str(handCords.x) + " " + str(handCords.y))
        print("Status: " + str(handCords.status))
+       print("Orientation: " + str(handCords.orientation))
