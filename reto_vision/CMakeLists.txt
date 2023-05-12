@@ -170,6 +170,7 @@ catkin_install_python(PROGRAMS
   scripts/wobot.py
   scripts/test.py
   scripts/sensor.py
+  scripts/talker.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

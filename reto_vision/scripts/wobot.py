@@ -13,6 +13,7 @@ import moveit_msgs.msg
 import geometry_msgs.msg
 from gazebo_msgs.msg import ContactsState
 from tf.transformations import quaternion_from_euler
+from hand_tracking.msg import hand_cords
 
 # rostopic pub 
 # /arm_controller/command 
@@ -26,6 +27,7 @@ req = AttachRequest()
 gripper_1_coll_contact = ContactsState()
 gripper_2_coll_contact = ContactsState()
 holding = False
+handCords = hand_cords()
 
 # Grippers configs
 grippers_open_config = [0.27,-0.27]
@@ -80,6 +82,14 @@ def check_object(gripper_1_coll_contact, gripper_2_coll_contact, attach_srv):
                     return True
     return False
 
+def hand_callback(msg):
+    global handCords
+    handCords.x = msg.x*7.0/3200.0-0.7
+    handCords.y = msg.y*(-7.0/4800.0)+0.7
+    handCords.status = msg.status
+    handCords.orientation = msg.orientation
+    #print("X :",handCords.x, ", Y :",handCords.y) 
+
 def activate_callback(msg):
     global recvmsg
     print(msg.data)
@@ -110,8 +120,7 @@ if __name__ == '__main__':
     gripper_2 = rospy.Subscriber('/gripper_2_vals', ContactsState, gripper_2_coll_callback)
     
     # This will be input
-    sub_wl = rospy.Subscriber("wl", String, activate_callback)
-
+    sub_wl = rospy.Subscriber("hand_coordinates", hand_cords, hand_callback)
     moveit_commander.roscpp_initialize(sys.argv)
 
     rospy.init_node("wobot")
@@ -122,8 +131,8 @@ if __name__ == '__main__':
     scene = moveit_commander.PlanningSceneInterface()
     group_name = "arm"
     group = moveit_commander.MoveGroupCommander(group_name)
-    group.set_num_planning_attempts(1000)
-    group.set_planning_time(60)
+    group.set_num_planning_attempts(500000)
+    group.set_planning_time(5)
 
     # Initial position
     joint_goal = group.get_current_joint_values()
@@ -144,55 +153,56 @@ if __name__ == '__main__':
         # Message for closing and opening
         message.joint_names = ["gripper_1","gripper_2"]
 
+        print(holding)
+
         # Manage a cube picking up
         if check_object(gripper_1_coll_contact, gripper_2_coll_contact, attach_srv):
             points.positions = grippers_closeMagnet_config
             gripper.publish(message)
             holding = True
 
-        if recvmsg.split(",")[0] == "a":
+        # Close
+        if not(holding) and handCords.status == "close":
             points.positions = grippers_close_config
             gripper.publish(message)
+            print("CLOSING")
 
-        elif recvmsg.split(",")[0] == "b":
+        # Detach
+        if handCords.status == "open":
             points.positions = grippers_open_config
             gripper.publish(message)
 
-        elif recvmsg.split(",")[0] == "d":
-            req.model_name_1 = "robot"
-            req.link_name_1 = "p3_link"
-            req.model_name_2 = current_model
-            req.link_name_2 = current_link
+            if holding:
+                req.model_name_1 = "robot"
+                req.link_name_1 = "p3_link"
+                req.model_name_2 = current_model
+                req.link_name_2 = current_link
 
-            detach_srv.call(req)
-            holding = False
+                detach_srv.call(req)
+                holding = False
+            print("OPENING")
 
         # Move to a location
-        elif recvmsg.split(",")[0] == "e":
-            roll = float(recvmsg.split(",")[3])
-            pitch = 0.0
-            yaw = 1.57
-            quaternion = quaternion_from_euler(roll, pitch, yaw)
-            
-            pose_goal = geometry_msgs.msg.Pose()
-            pose_goal.position.x = float(recvmsg.split(",")[1])
-            pose_goal.position.y = 0.0
-            pose_goal.position.z = float(recvmsg.split(",")[2])
-            pose_goal.orientation = geometry_msgs.msg.Quaternion(*quaternion)
-            group.set_pose_target(pose_goal)
-            plan = group.go(wait=True)
-            group.stop()
-            #group.clear_pose_targets()
-
-            print("SUCCESS")
-
-        elif recvmsg == "f":
-            # Do nothing
-            #print("...")
-            a = 2
-
+        if handCords.x > 0:
+            roll = 1.57
         else:
-            points.positions = [0.025,-0.025]
+            roll = -1.57
+        #roll = float(recvmsg.split(",")[3])
+        pitch = 0.0
+        yaw = 1.57
+        quaternion = quaternion_from_euler(roll, pitch, yaw)
+        
+        pose_goal = geometry_msgs.msg.Pose()
+        pose_goal.position.x = handCords.x
+        pose_goal.position.y = 0.0
+        pose_goal.position.z = handCords.y
+        pose_goal.orientation = geometry_msgs.msg.Quaternion(*quaternion)
+        group.set_pose_target(pose_goal)
+        plan = group.go(wait=True)
+        group.stop()
+        #group.clear_pose_targets()
+
+        print("SUCCESS")
 
         points.time_from_start = rospy.Duration(2.0)
         message.points = [points]
