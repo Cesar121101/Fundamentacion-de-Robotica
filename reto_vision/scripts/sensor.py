@@ -13,7 +13,7 @@ def listener():
     rospy.init_node('contact_sensor_listener')
 
     # Subscribe to the contact sensor topic
-    sub = rospy.Subscriber('/gazebo/default/my_box_1/my_box_link/box_1_contact', ContactsState, callback)
+    sub = rospy.Subscriber('/gripper_1_vals', ContactsState, callback)
 
     rate = rospy.Rate(100)
 
