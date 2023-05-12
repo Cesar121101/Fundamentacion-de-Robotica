@@ -76,6 +76,7 @@ generate_messages(
  DEPENDENCIES
  std_msgs  # Or other packages containing msgs
  trajectory_msgs
+ gazebo_msgs
  )
 
 ################################################
@@ -168,6 +169,7 @@ include_directories(
 catkin_install_python(PROGRAMS
   scripts/wobot.py
   scripts/test.py
+  scripts/sensor.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

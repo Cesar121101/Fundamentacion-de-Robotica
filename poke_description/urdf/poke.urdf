@@ -23,6 +23,43 @@
             <jointName>p0_joint, p1_joint, p2_joint, p3_joint, gripper_1, gripper_2</jointName>
         </plugin>
     </gazebo>
+
+    <gazebo reference= "gripper_link_1">
+        <sensor name="gripper_1_sensor" type="contact">
+            <plugin name="gripper_1_sensor" filename="libgazebo_ros_bumper.so">   
+                <bumperTopicName>gripper_1_vals</bumperTopicName>
+                <frameName>world</frameName>
+                <alwayson>true</alwayson>
+                <updaterate>100.0</updaterate>
+            </plugin>
+            <selfCollide>true</selfCollide>
+            <always_on>true</always_on>
+            <update_rate>1000.</update_rate>
+            <material>Gazebo/Red</material>
+            <contact>
+            <collision>gripper_link_1_collision_collision</collision>
+            </contact>
+            
+        </sensor>
+    </gazebo>
+    <gazebo reference= "gripper_link_2">
+        <sensor name="gripper_2_sensor" type="contact">
+            <plugin name="gripper_2_sensor" filename="libgazebo_ros_bumper.so">   
+                <bumperTopicName>gripper_2_vals</bumperTopicName>
+                <frameName>world</frameName>
+                <alwayson>true</alwayson>
+                <updaterate>100.0</updaterate>
+            </plugin>
+            <selfCollide>true</selfCollide>
+            <always_on>true</always_on>
+            <update_rate>1000.</update_rate>
+            <material>Gazebo/Red</material>
+            <contact>
+            <collision>gripper_link_2_collision_collision</collision>
+            </contact>
+            
+        </sensor>
+    </gazebo>
     <!-- Gazebo colors -->
     <gazebo reference="baseMount">
         <material>Gazebo/Grey</material>
@@ -283,7 +320,7 @@
                 <box size="0.025 0.1 0.15" />
             </geometry>
         </visual>
-        <collision>
+        <collision name ="gripper_link_1_collision">
             <origin rpy="0.0 0.0 0.0" xyz="0.025 0.0 0.025" />
             <geometry>
                 <box size="0.025 0.1 0.15" />
@@ -302,7 +339,7 @@
                 <box size="0.025 0.1 0.15" />
             </geometry>
         </visual>
-        <collision>
+        <collision name="gripper_link_2_collision">
             <origin rpy="0.0 0.0 0.0" xyz="-0.025 0.0 0.025" />
             <geometry>
                 <box size="0.025 0.1 0.15" />
