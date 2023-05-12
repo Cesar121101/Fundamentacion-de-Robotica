@@ -134,7 +134,7 @@
         <parent link="baseMount_link" />
         <child link="p0_link" />
         <axis xyz="0 1 0" />
-        <limit effort="100" lower="-3.14159" upper="3.14159" velocity="5" />
+        <limit effort="100" lower="-1.5708" upper="1.5708" velocity="5" />
         <!--origin rpy="0 0 0" xyz="0.0 0.0 ${l1+jr}" /-->
     </joint>
     <link name="p0_link">
