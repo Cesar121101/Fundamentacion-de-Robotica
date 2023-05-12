@@ -11,6 +11,7 @@ handObj = hand_cords()
 handObj.x = 0.0
 handObj.y = 0.0
 handObj.status = "close"
+handObj.orientation = "up"
 
 #Import ML model
 mp_hands = mp.solutions.hands
@@ -83,14 +84,17 @@ if __name__=='__main__':
                 mp_drawing.draw_landmarks(frame, hand_landmarks, mp_hands.HAND_CONNECTIONS)
                 #Obtain x,y coordinates of the Hand
                 x1, y1 = int(hand_landmarks.landmark[9].x * frame.shape[1]), int(hand_landmarks.landmark[9].y * frame.shape[0])
-                #Obtain x,y coordinates of the hand to know if the hand is open or close
+                #Obtain x,y coordinates of the fingers to know if the hand is open or close
                 x2, y2 = int(hand_landmarks.landmark[4].x * frame.shape[1]), int(hand_landmarks.landmark[4].y * frame.shape[0])
                 x3, y3 = int(hand_landmarks.landmark[8].x * frame.shape[1]), int(hand_landmarks.landmark[8].y * frame.shape[0])
+                #0btain coords of another finger to verify orientation
+                x4, y4 = int(hand_landmarks.landmark[12].x * frame.shape[1]), int(hand_landmarks.landmark[12].y * frame.shape[0])
 
                 #Print hand and Finger Coordinates
                 print("X,Y coordinates of the Hand:" + str(x1) + (" ") + str(y1))
                 print("F1:" + str(x2) + (" ") + str(y2))
                 print("F2:" + str(x3) + (" ") + str(y3))
+                print("F3:" + str(x4) + (" ") + str(y4))
                 
             #Show tracked frame
             cv2.imshow('MediaPipe Hands', frame)
@@ -103,7 +107,17 @@ if __name__=='__main__':
             handObj.status = "close"
         else: 
             handObj.status = "open"
-        
+
+        #Verify orientation of the hand
+        if(y1-y4 > 20):
+            handObj.orientation = "up"
+        elif(x4-x1 > 20):
+            handObj.orientation = "left"
+        elif(y4-y1 > 20):
+            handObj.orientation = "down"
+        elif(x1-x4 > 20):
+            handObj.orientation = "right"
+
         # Assing values to hand object
         handObj.x = x1
         handObj.y = y1
