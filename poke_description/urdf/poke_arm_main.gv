@@ -1,0 +1,32 @@
+digraph G {
+node [shape=box];
+"world" [label="world"];
+"poke_base_link" [label="poke_base_link"];
+"baseMount_link" [label="baseMount_link"];
+"p0_link" [label="p0_link"];
+"p1_link" [label="p1_link"];
+"p2_link" [label="p2_link"];
+"p3_link" [label="p3_link"];
+"gripper_link_1" [label="gripper_link_1"];
+"gripper_link_2" [label="gripper_link_2"];
+"gripper_frame_cp" [label="gripper_frame_cp"];
+node [shape=ellipse, color=blue, fontcolor=blue];
+"world" -> "poke_base_joint" [label="xyz: 0 0 0 \nrpy: 0 -0 0"]
+"poke_base_joint" -> "poke_base_link"
+"poke_base_link" -> "baseMount_joint" [label="xyz: 0 0 0 \nrpy: 0 -0 0"]
+"baseMount_joint" -> "baseMount_link"
+"baseMount_link" -> "p0_joint" [label="xyz: 0 0 0.095 \nrpy: 0 -0 0"]
+"p0_joint" -> "p0_link"
+"p0_link" -> "p1_joint" [label="xyz: 0 0 0.245 \nrpy: 0 -0 0"]
+"p1_joint" -> "p1_link"
+"p1_link" -> "p2_joint" [label="xyz: 0 0 0.245 \nrpy: 0 -0 0"]
+"p2_joint" -> "p2_link"
+"p2_link" -> "p3_joint" [label="xyz: 0 0 0.1225 \nrpy: 0 -0 0"]
+"p3_joint" -> "p3_link"
+"p3_link" -> "gripper_1" [label="xyz: 0 0 0.1 \nrpy: 0 -0 0"]
+"gripper_1" -> "gripper_link_1"
+"p3_link" -> "gripper_2" [label="xyz: 0 0 0.1 \nrpy: 0 -0 0"]
+"gripper_2" -> "gripper_link_2"
+"p3_link" -> "gripper_frame_joint" [label="xyz: 0 0 0.036 \nrpy: 0 -1.5708 0"]
+"gripper_frame_joint" -> "gripper_frame_cp"
+}
