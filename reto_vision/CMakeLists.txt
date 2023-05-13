@@ -171,6 +171,7 @@ catkin_install_python(PROGRAMS
   scripts/test.py
   scripts/sensor.py
   scripts/talker.py
+  scripts/commands.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
