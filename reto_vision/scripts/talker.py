@@ -24,4 +24,5 @@ if __name__ == '__main__':
         handC.y = float(msgrec.split(",")[1])
         handC.status = msgrec.split(",")[2]
 
+
         hand_pub.publish(handC)

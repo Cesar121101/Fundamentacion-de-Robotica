@@ -31,8 +31,8 @@ handCords = hand_cords()
 
 # Grippers configs
 grippers_open_config = [0.27,-0.27]
-grippers_close_config = [0.025,-0.025]
-grippers_closeMagnet_config = [0.040,-0.040]
+grippers_close_config = [0.084,-0.084]
+grippers_closeMagnet_config = [0.094,-0.094]
 
 # Current holding
 current_model = ""
@@ -131,14 +131,14 @@ if __name__ == '__main__':
     scene = moveit_commander.PlanningSceneInterface()
     group_name = "arm"
     group = moveit_commander.MoveGroupCommander(group_name)
-    group.set_num_planning_attempts(500000)
-    group.set_planning_time(5)
+    group.set_num_planning_attempts(10000000)
+    group.set_planning_time(2)
 
     # Initial position
     joint_goal = group.get_current_joint_values()
-    joint_goal[0] = 0.174533
-    joint_goal[1] = 0.785398
-    joint_goal[2] = 1.22173
+    joint_goal[0] = 0.08726
+    joint_goal[1] = 0.1745
+    joint_goal[2] = 0.3490
     joint_goal[3] = 1.5708
     group.go(joint_goal, wait=True)
     group.stop()
@@ -195,7 +195,10 @@ if __name__ == '__main__':
         pose_goal = geometry_msgs.msg.Pose()
         pose_goal.position.x = handCords.x
         pose_goal.position.y = 0.0
-        pose_goal.position.z = handCords.y
+        if holding:
+            pose_goal.position.z = handCords.y+0.05
+        else:
+            pose_goal.position.z = handCords.y
         pose_goal.orientation = geometry_msgs.msg.Quaternion(*quaternion)
         group.set_pose_target(pose_goal)
         plan = group.go(wait=True)
