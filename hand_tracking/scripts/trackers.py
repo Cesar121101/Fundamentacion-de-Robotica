@@ -89,12 +89,6 @@ if __name__=='__main__':
                 x3, y3 = int(hand_landmarks.landmark[8].x * frame.shape[1]), int(hand_landmarks.landmark[8].y * frame.shape[0])
                 #0btain coords of another finger to verify orientation
                 x4, y4 = int(hand_landmarks.landmark[12].x * frame.shape[1]), int(hand_landmarks.landmark[12].y * frame.shape[0])
-
-                #Print hand and Finger Coordinates
-                print("X,Y coordinates of the Hand:" + str(x1) + (" ") + str(y1))
-                print("F1:" + str(x2) + (" ") + str(y2))
-                print("F2:" + str(x3) + (" ") + str(y3))
-                print("F3:" + str(x4) + (" ") + str(y4))
                 
             #Show tracked frame
             cv2.imshow('MediaPipe Hands', frame)
