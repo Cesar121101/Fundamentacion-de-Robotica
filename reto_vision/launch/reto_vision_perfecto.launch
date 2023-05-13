@@ -1,0 +1,8 @@
+<launch>
+  <arg name="node_start_delay" default="1.0" />  
+  <include file="$(find owo_moveit)/launch/demo_gazebo.launch"/>
+  <node name="wobot" pkg="reto_vision" type="wobot.py" output="screen" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' " />
+  <node name="talker" pkg="reto_vision" type="talker.py" output="screen" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' " />
+  <node name="commands" pkg="reto_vision" type="commands.py" output="screen" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' "/>
+
+</launch>
