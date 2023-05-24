@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 
 # Load image
-image = cv2.imread('pista4.jpg')
+image = cv2.imread('pista2.jpg')
 
 # Apply a Gaussian Blur filter
 blurred = cv2.GaussianBlur(image, (9, 9), 0)
@@ -21,7 +21,7 @@ edges = cv2.Canny(gray, 100, 100)
 mask = np.zeros_like(edges)
 
 # Define the coordinates of the area of interest (example: a rectangular area)
-x1, y1 = 600, 300  # Top-left corner
+x1, y1 = 600, 500  # Top-left corner
 x2, y2 = 900, 900  # Bottom-right corner
 
 # Set the area inside the specified coordinates as white in the mask
@@ -39,11 +39,10 @@ rectangle = cv2.rectangle(image, (x1, y1), (x2, y2), (0, 0, 255), 2)
 # Find the contours
 contours, _ = cv2.findContours(masked_edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-# Find contours that are black lines
-black_lines = []
 widest_line_width = 0
 highest_line_height = 0
 widest_contours = []
+contour_size = []
 
 #Find the widthest and longest contour
 for contour in contours:
@@ -69,10 +68,53 @@ for contour in contours:
     # Collect all contours that meet the criteria
     if line_width >= widest_line_width * 0.04 and line_height >= highest_line_height * 0.1:
         # print(str(line_width) + " " + str(line_height))
+        contour_size.append([x,y])
         widest_contours.append(contour)
+
+for i in range(len(contour_size)):
+    print("X: " + str(contour_size[i][0]) + " Y: " + str(contour_size[i][1]))
+
+print("Contornos: " + str(len(widest_contours)))
 
 # Draw all widest line contours
 cv2.drawContours(image, widest_contours, -1, (0, 255, 0), 2)
+
+# Left rectangle
+x1_r1, x2_r1, y1_r1, y2_r1 = 550, 600, 700, 750
+rectangle = cv2.rectangle(image, (x1_r1,y1_r1), (x2_r1, y2_r1), (255, 0, 0), 2)
+roi1 = image[y1_r1:y2_r1, x1_r1:x2_r1]
+color_promedio1 = np.mean(roi1, axis=(0, 1))
+color_promedio_rgb1 = cv2.cvtColor(np.uint8([[color_promedio1]]), cv2.COLOR_BGR2RGB)
+if(color_promedio_rgb1.mean() > 127):
+    color_promedio_rgb1 = [255, 255, 255]
+else: 
+    color_promedio_rgb1 = [0, 0, 0]
+
+# Right rectangle
+x1_r2, x2_r2, y1_r2, y2_r2 = 900, 950, 700, 750
+rectangle = cv2.rectangle(image, (x1_r2,y1_r2), (x2_r2, y2_r2), (0, 255, 0), 2)
+roi2 = image[y1_r2:y2_r2, x1_r2:x2_r2]
+color_promedio2 = np.mean(roi2, axis=(0, 1))
+color_promedio_rgb2 = cv2.cvtColor(np.uint8([[color_promedio2]]), cv2.COLOR_BGR2RGB)
+if(color_promedio_rgb2.mean() > 127):
+    color_promedio_rgb2 = [255, 255, 255]
+else: 
+    color_promedio_rgb2 = [0, 0, 0]
+
+# Middle rectangle
+x1_r3, x2_r3, y1_r3, y2_r3 = 725, 775, 700, 750
+rectangle = cv2.rectangle(image, (x1_r3,y1_r3), (x2_r3, y2_r3), (0, 0, 255), 2)
+roi3 = image[y1_r3:y2_r3, x1_r3:x2_r3]
+color_promedio3 = np.mean(roi3, axis=(0, 1))
+color_promedio_rgb3 = cv2.cvtColor(np.uint8([[color_promedio3]]), cv2.COLOR_BGR2RGB)
+if(color_promedio_rgb3.mean() > 127):
+    color_promedio_rgb3 = [255, 255, 255]
+else: 
+    color_promedio_rgb3 = [0, 0, 0]
+
+print("Color promedio 1: ", color_promedio_rgb1)
+print("Color promedio 2: ", color_promedio_rgb2)
+print("Color promedio 3: ", color_promedio_rgb3)
 
 # Show the image with the enclosed line
 cv2.imshow('Enclosed Line', image)
