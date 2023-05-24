@@ -171,3 +171,4 @@ if __name__=='__main__':
         camera_callback()
         instructor_pub.publish(instruction)
         rate.sleep()
+        print("")
