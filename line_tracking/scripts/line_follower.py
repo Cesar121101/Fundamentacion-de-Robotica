@@ -19,7 +19,7 @@ def camera_callback():
     # bridge = CvBridge()
     # cv_image = bridge.imgmsg_to_cv2(msg, desired_encoding='passthrough')
 
-    image_file = "pista.jpg" 
+    image_file = "pista2.jpg" 
     package_path = rospkg.RosPack().get_path('line_tracking')
 
     image_path = package_path + "/images/" + image_file

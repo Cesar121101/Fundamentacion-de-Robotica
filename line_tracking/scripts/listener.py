@@ -7,7 +7,7 @@ instruction = ""
 def instruction_callback(msg):
     global instruction
     
-    instruction = msg
+    instruction = msg.data
 
 # Stop Condition
 def stop():
