@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.7
+#!/usr/bin/env python
 import rospy
 from std_msgs.msg import String
 
@@ -7,7 +7,7 @@ instruction = ""
 def instruction_callback(msg):
     global instruction
     
-    instruction = msg
+    instruction = msg.data
 
 # Stop Condition
 def stop():

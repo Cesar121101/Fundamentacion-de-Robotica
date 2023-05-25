@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.7
+#!/usr/bin/env python2.7
 import rospy
 import cv2
 import numpy as np
@@ -8,33 +8,43 @@ from cv_bridge import CvBridge
 from std_msgs.msg import Float32
 from std_msgs.msg import String
 
+#Terminal en el puzzlebot 
+# ssh puzzlebot@10.42.0.1
+#roslaunch ros_deep_learning video_source.ros1.launch
+
+#Terminal en la compu
+# export ROS_IP=10.42.0.16
+#export ROS_MASTER_URI=http://10.42.0.1:11311
+#scp line_follower.py puzzlebot@10.42.0.1:/home/puzzlebot/catkin_ws/src/line_tracking/scripts
+
+
 instruction = ""
 
 #Add mesage to callback
-def camera_callback():
+def camera_callback(msg):
 
     global instruction
 
-    # global cv_image
-    # bridge = CvBridge()
-    # cv_image = bridge.imgmsg_to_cv2(msg, desired_encoding='passthrough')
+    global cv_image
+    bridge = CvBridge()
+    image = bridge.imgmsg_to_cv2(msg, desired_encoding='passthrough')
 
-    image_file = "pista.jpg" 
-    package_path = rospkg.RosPack().get_path('line_tracking')
+    # image_file = "pista1.jpg" 
+    # package_path = rospkg.RosPack().get_path('line_tracking')
 
-    image_path = package_path + "/images/" + image_file
+    # image_path = package_path + "/images/" + image_file
 
-    try:
-        image = cv2.imread(image_path)
-    except Exception as e:
-        print("Error al leer imagen")
+    # try:
+    #     image = cv2.imread(image_path)
+    # except Exception as e:
+    #     print("Error al leer imagen")
 
     # Apply a Gaussian Blur filter
     blurred = cv2.GaussianBlur(image, (9, 9), 0)
 
     # Apply adaptive threshold to obtain a binary image
     gray = cv2.cvtColor(blurred, cv2.COLOR_BGR2GRAY)
-    binary = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, 11, 4)
+    # binary = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, 11, 4)
 
     # Apply Canny Edge Detector
     edges = cv2.Canny(gray, 100, 100)
@@ -44,8 +54,8 @@ def camera_callback():
     mask = np.zeros_like(edges)
 
     # Define the coordinates of the area of interest (example: a rectangular area)
-    x1, y1 = 600, 500  # Top-left corner
-    x2, y2 = 900, 900  # Bottom-right corner
+    x1, y1 = 500, 500  # Top-left corner
+    x2, y2 = 750, 900  # Bottom-right corner
 
     # Set the area inside the specified coordinates as white in the mask
     mask[y1:y2, x1:x2] = 255
@@ -53,11 +63,15 @@ def camera_callback():
     # Apply the mask to the edge image
     masked_edges = cv2.bitwise_and(edges, mask)
 
-    # Draw area of interest
-    rectangle = cv2.rectangle(image, (x1, y1), (x2, y2), (0, 0, 255), 2)
+    # # Draw area of interest
+    # rectangle = cv2.rectangle(image, (x1, y1), (x2, y2), (0, 0, 255), 2)
 
-    # Find the contours
-    contours, _ = cv2.findContours(masked_edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    # Find the contours (Jetson)
+    contours, _= cv2.findContours(masked_edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+
+    # # Find the contours
+    # _, contours, hierarchy = cv2.findContours(masked_edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
     widest_line_width = 0
     highest_line_height = 0
@@ -91,11 +105,11 @@ def camera_callback():
             contour_size.append([x,y])
             widest_contours.append(contour)
 
-    # Draw all widest line contours
-    cv2.drawContours(image, widest_contours, -1, (0, 255, 0), 2)
+    # # Draw all widest line contours
+    # cv2.drawContours(image, widest_contours, -1, (0, 255, 0), 2)
 
     # Left rectangle
-    x1_r1, x2_r1, y1_r1, y2_r1 = 550, 600, 700, 750
+    x1_r1, x2_r1, y1_r1, y2_r1 = 475, 525, 650, 700
     rectangle = cv2.rectangle(image, (x1_r1,y1_r1), (x2_r1, y2_r1), (255, 0, 0), 2)
     roi1 = image[y1_r1:y2_r1, x1_r1:x2_r1]
     color_promedio1 = np.mean(roi1, axis=(0, 1))
@@ -106,7 +120,7 @@ def camera_callback():
         color_promedio_rgb1 = [0, 0, 0]
 
     # Right rectangle
-    x1_r2, x2_r2, y1_r2, y2_r2 = 900, 950, 700, 750
+    x1_r2, x2_r2, y1_r2, y2_r2 = 725, 775, 650, 700
     rectangle = cv2.rectangle(image, (x1_r2,y1_r2), (x2_r2, y2_r2), (0, 255, 0), 2)
     roi2 = image[y1_r2:y2_r2, x1_r2:x2_r2]
     color_promedio2 = np.mean(roi2, axis=(0, 1))
@@ -118,7 +132,7 @@ def camera_callback():
 
 
     # Middle rectangle
-    x1_r3, x2_r3, y1_r3, y2_r3 = 725, 775, 700, 750
+    x1_r3, x2_r3, y1_r3, y2_r3 = 600, 650, 650, 700
     rectangle = cv2.rectangle(image, (x1_r3,y1_r3), (x2_r3, y2_r3), (0, 0, 255), 2)
     roi3 = image[y1_r3:y2_r3, x1_r3:x2_r3]
     color_promedio3 = np.mean(roi3, axis=(0, 1))
@@ -142,11 +156,11 @@ def camera_callback():
     else: 
         instruction = "stop"
 
-    # Show the image with the enclosed line
-    cv2.imshow('Enclosed Line', image)
+    # # Show the image with the enclosed line
+    # cv2.imshow('Enclosed Line', image)
 
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
 
 # Stop Condition
 def stop():
@@ -163,12 +177,10 @@ if __name__=='__main__':
 
     # Setup Publishers and Suscribers
     instructor_pub = rospy.Publisher("Instructor", String, queue_size=10)
-    # rospy.Subscriber("video_source/raw", Image, camera_callback)
+    rospy.Subscriber("video_source/raw", Image, camera_callback)
 
 
     #Run the node
     while not rospy.is_shutdown():
-        camera_callback()
         instructor_pub.publish(instruction)
         rate.sleep()
-        print("")
