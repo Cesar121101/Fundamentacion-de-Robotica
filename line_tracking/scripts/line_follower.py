@@ -13,8 +13,8 @@ from std_msgs.msg import String
 #roslaunch ros_deep_learning video_source.ros1.launch
 
 #Terminal en la compu
-# export ROS_IP=10.42.0.16
-#export ROS_MASTER_URI=http://10.42.0.1:11311
+# export ROS_IP=10.42.0.16 (compu y jetson)
+#export ROS_MASTER_URI=http://10.42.0.1:11311 (jetson)
 #scp line_follower.py puzzlebot@10.42.0.1:/home/puzzlebot/catkin_ws/src/line_tracking/scripts
 
 
