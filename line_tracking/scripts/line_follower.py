@@ -21,23 +21,23 @@ from std_msgs.msg import String
 instruction = ""
 
 # Add mesage to callback
-def camera_callback():
+def camera_callback(msg):
 
     global instruction
 
-    # global cv_image
-    # bridge = CvBridge()
-    # image = bridge.imgmsg_to_cv2(msg, desired_encoding='passthrough')
+    global cv_image
+    bridge = CvBridge()
+    image = bridge.imgmsg_to_cv2(msg, desired_encoding='passthrough')
 
-    image_file = "pista1.jpg" 
-    package_path = rospkg.RosPack().get_path('line_tracking')
+    # image_file = "pista1.jpg" 
+    # package_path = rospkg.RosPack().get_path('line_tracking')
 
-    image_path = package_path + "/images/" + image_file
+    # image_path = package_path + "/images/" + image_file
 
-    try:
-        image = cv2.imread(image_path)
-    except Exception as e:
-        print("Error al leer imagen")
+    # try:
+    #     image = cv2.imread(image_path)
+    # except Exception as e:
+    #     print("Error al leer imagen")
 
     # Apply a Gaussian Blur filter
     blurred = cv2.GaussianBlur(image, (13, 13), 0)
@@ -98,8 +98,8 @@ def camera_callback():
             widest_line_width = line_width
             highest_line_height = line_height
     
-    print("Ancho: " + str(widest_line_width))
-    print("Alto: " + str(highest_line_height))
+    # print("Ancho: " + str(widest_line_width))
+    # print("Alto: " + str(highest_line_height))
 
     #Find the contours similar to the biggest contour
     for contour in contours:
@@ -155,7 +155,7 @@ def camera_callback():
     print("Contornos: "+ str(len(sec_filter)))
     print("Len: " + str(len(widest_contours)))
 
-    print(sec_filter)
+    # print(sec_filter)
     # print("C: " + str(sec_filter))
     for c in sec_filter: 
         cv2.rectangle(image, (c[0],c[1]), (c[0]+c[4], c[1]+c[5]), (255, 255, 255), 2)
@@ -234,13 +234,13 @@ def camera_callback():
     # else: 
     #     instruction = "stop"
 
-    # Show the image with the enclosed line
-    cv2.imshow('Enclosed Line', image)
+    # # Show the image with the enclosed line
+    # cv2.imshow('Enclosed Line', image)
 
-    print("Instrction: " + str(instruction))
+    # print("Instrction: " + str(instruction))
 
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
 
 # Stop Condition
 def stop():
@@ -257,8 +257,8 @@ if __name__=='__main__':
 
     # Setup Publishers and Suscribers
     instructor_pub = rospy.Publisher("Instructor", String, queue_size=10)
-    # rospy.Subscriber("video_source/raw", Image, camera_callback)
-    camera_callback()
+    rospy.Subscriber("video_source/raw", Image, camera_callback)
+    # camera_callback()
 
 
     #Run the node
