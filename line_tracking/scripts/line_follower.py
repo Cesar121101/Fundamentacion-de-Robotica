@@ -40,11 +40,11 @@ def camera_callback():
         print("Error al leer imagen")
 
     # Apply a Gaussian Blur filter
-    blurred = cv2.GaussianBlur(image, (9, 9), 0)
+    blurred = cv2.GaussianBlur(image, (13, 13), 0)
 
     # Apply adaptive threshold to obtain a binary image
     gray = cv2.cvtColor(blurred, cv2.COLOR_BGR2GRAY)
-    binary = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, 11, 4)
+    binary = cv2.adaptiveThreshold(binary, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, 11, 4)
 
     # Apply Canny Edge Detector
     edges = cv2.Canny(binary, 100, 100)
@@ -82,6 +82,8 @@ def camera_callback():
     highest_line_height = 0
     widest_contours = []
     contour_size = []
+    sec_filter = []
+    cont = 0
 
     #Find the widthest and longest contour
     for contour in contours:
@@ -108,11 +110,11 @@ def camera_callback():
         line_height = h
         
         # Collect all contours that meet the criteria
-        if ((line_width >= widest_line_width * 0.65 and line_height >= highest_line_height * 0.85) or (line_width == widest_line_width and line_height == highest_line_height)):
+        if ((line_width >= widest_line_width * 0.2 and line_height >= highest_line_height * 0.85) or (line_width == widest_line_width and line_height == highest_line_height)):
             # Calcula los momentos del contorno
             moments = cv2.moments(contour)
             if(moments['m00'] > 0):
-                print(str(line_width) + " " + str(line_height))
+                # print(str(line_width) + " " + str(line_height))
                 # Calcula los centroides del contorno
                 centroid_x = int(moments['m10'] / moments['m00'])
                 centroid_y = int(moments['m01'] / moments['m00'])
@@ -120,9 +122,42 @@ def camera_callback():
                 # Guarda las coordenadas del contorno y su centroide
                 contour_size.append([x, y, centroid_x, centroid_y, w, h])
                 widest_contours.append(contour)
+    
+    # #Find index of the widesth line
+    # for i in contour_size:
+    #     if(i[4]  == widest_line_width):
+    #         index = cont
+    #         break
+    #     else:
+    #         cont+=1
+    
+    # cont = 0
 
-    print("Contornos: "+ str(len(widest_contours)))
-    for c in contour_size: 
+    # sec_filter.append(contour_size[index])
+
+    for i in contour_size: 
+        for j in contour_size:
+            if(i != j):
+                print("I: " + str(i) + "J: " + str(j))
+                if(abs(i[2] - j[2]) > 50):
+                    sec_filter.append(j)
+                else:
+                    try: 
+                        index = sec_filter.index(j)
+                        sec_filter.pop(index)
+                    except Exception as e:
+                        index = 0
+                    contour_size.pop(cont)
+                    widest_contours.pop(cont)
+            cont+=1
+        cont = 0
+
+    print("Contornos: "+ str(len(sec_filter)))
+    print("Len: " + str(len(widest_contours)))
+
+    print(sec_filter)
+    # print("C: " + str(sec_filter))
+    for c in sec_filter: 
         cv2.rectangle(image, (c[0],c[1]), (c[0]+c[4], c[1]+c[5]), (255, 255, 255), 2)
         cv2.circle(image, (c[2], c[3]), 5, (0, 255, 255), -1)
 
