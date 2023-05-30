@@ -17,7 +17,9 @@ from std_msgs.msg import String
 # export ROS_MASTER_URI=http://10.42.0.1:11311
 # scp line_follower.py puzzlebot@10.42.0.1:/home/puzzlebot/catkin_ws/src/line_tracking/scripts
 
+# Global variables
 instruction = ""
+video_writer = None
 
 # Add mesage to callback
 def camera_callback(msg):
@@ -28,6 +30,9 @@ def camera_callback(msg):
     global cv_image
     bridge = CvBridge()
     image = bridge.imgmsg_to_cv2(msg, desired_encoding='passthrough')
+
+    # Obtener las dimensiones de la imagen
+    height, width, _ = image.shape
 
     # Apply a Gaussian Blur filter
     blurred = cv2.GaussianBlur(image, (13, 13), 0)
@@ -55,9 +60,6 @@ def camera_callback(msg):
     # # Draw area of interest
     # cv2.rectangle(image, (x1, y1), (x2, y2), (0, 0, 255), 2)
 
-    # Obtener las dimensiones de la imagen
-    height, width, _ = image.shape
-
     # Definir las coordenadas de la region central
     x1_centro = int(width / 2 + 80)
     x2_centro = int(width / 2 + 170)
@@ -75,7 +77,7 @@ def camera_callback(msg):
     roi_centro = image[y1_centro:y2_centro, x1_centro:x2_centro]
     roi_centro2 = image[y1_centro:y2_centro, x1_centro2:x2_centro2]
 
-    # Calcular el color promedio de la region centxral
+    # Calcular el color promedio de la region central
     color_promedio_centro = np.mean(roi_centro, axis=(0, 1))
     color_promedio_rgb_centro = cv2.cvtColor(np.uint8([[color_promedio_centro]]), cv2.COLOR_BGR2RGB)
 
@@ -98,9 +100,19 @@ def camera_callback(msg):
     else: 
         instruction = "stop"
 
+    # Create video writer object
+    if video_writer is None:
+        video_writer = cv2.VideoWriter('output.mp4', cv2.VideoWriter_fourcc(*'mp4v'), 30, (width, height))
+
+    # Write image to video
+    video_writer.write(image)
+
 # Stop Condition
 def stop():
   print("Stopping")
+  if video_writer is not None:
+        video_writer.release()
+
 
 if __name__=='__main__':
 
