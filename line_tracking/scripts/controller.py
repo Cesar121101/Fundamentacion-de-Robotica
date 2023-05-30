@@ -40,14 +40,14 @@ if __name__=='__main__':
     while not rospy.is_shutdown():
             
         if instruction == "forward":
-            linearVelocity = 0.2
+            linearVelocity = 0.1
             angularVelocity = 0.0
         elif instruction == "left":
-            linearVelocity = 0.1
-            angularVelocity = -0.1
+            linearVelocity = 0.05
+            angularVelocity = 0.07
         elif instruction == "right":
-            linearVelocity = 0.1
-            angularVelocity = 0.1
+            linearVelocity = 0.05
+            angularVelocity = -0.07
         else: 
             linearVelocity = 0.0
             angularVelocity = 0.0
