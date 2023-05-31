@@ -2,7 +2,7 @@
 import rospy
 import cv2
 import numpy as np
-import rospkg
+import rospkgS
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 from std_msgs.msg import Float32
@@ -53,9 +53,6 @@ def camera_callback(msg):
 
     # Set the area inside the specified coordinates as white in the mask
     mask[y1:y2, x1:x2] = 255
-
-    # Apply the mask to the edge image
-    masked_edges = cv2.bitwise_and(edges, mask)
 
     # # Draw area of interest
     # cv2.rectangle(image, (x1, y1), (x2, y2), (0, 0, 255), 2)
