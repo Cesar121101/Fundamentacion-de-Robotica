@@ -15,17 +15,17 @@ from std_msgs.msg import String
 #Terminal en la compu
 # export ROS_IP=10.42.0.16
 # export ROS_MASTER_URI=http://10.42.0.1:11311
-# scp line_follower.py puzzlebot@10.42.0.1:/home/puzzlebot/catkin_ws/src/line_tracking/scripts
+# scp line_follower.py puzzlebot@10.42.0.1:/home/puzzlebot/catkin_ws/src/line_tracking/scripts 
 
 # Global variables
 instruction = ""
-video_writer = None
+# video_writer = None
 
 # Add mesage to callback
 def camera_callback(msg):
 
     global instruction
-    global video_writer
+    # global video_writer
 
     global cv_image
     bridge = CvBridge()
@@ -63,7 +63,7 @@ def camera_callback(msg):
     # Definir las coordenadas de la region central
     x1_centro = int(width / 2 + 80)
     x2_centro = int(width / 2 + 170)
-    y1_centro = int(height / 2 + 100)
+    y1_centro = int(height / 2 + 200)
     y2_centro = int(height/ 2 + 400)
     x1_centro2 = int(width / 2 - 170)
     x2_centro2 = int(width / 2 - 80)
@@ -100,18 +100,18 @@ def camera_callback(msg):
     else: 
         instruction = "stop"
 
-    # Create video writer object
-    if video_writer is None:
-        video_writer = cv2.VideoWriter('output.mp4', cv2.VideoWriter_fourcc(*'mp4v'), 30, (width, height))
+    # # Create video writer object
+    # if video_writer is None:
+    #     video_writer = cv2.VideoWriter('output.mp4', cv2.VideoWriter_fourcc(*'mp4v'), 2, (width, height))
 
-    # Write image to video
-    video_writer.write(image)
+    # # Write image to video
+    # video_writer.write(image)
 
 # Stop Condition
 def stop():
   print("Stopping")
-  if video_writer is not None:
-        video_writer.release()
+#   if video_writer is not None:
+#         video_writer.release()
 
 
 if __name__=='__main__':
@@ -120,7 +120,7 @@ if __name__=='__main__':
     
     # Initialize and Setup node at 100Hz
     rospy.init_node("Follower")
-    rate = rospy.Rate(100)
+    rate = rospy.Rate(80)
     rospy.on_shutdown(stop)
 
     # Setup Publishers and Suscribers

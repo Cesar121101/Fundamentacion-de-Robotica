@@ -9,6 +9,8 @@ from std_msgs.msg import String
 msgRobot = Twist()
 color_light = 2.0
 instruction = ""
+previousInstruction = ""
+cont = 0
 
 # Callback function of motor output
 def colors_callback(msg):
@@ -28,7 +30,7 @@ if __name__=='__main__':
     
     # Initialize and Setup node at 100Hz
     rospy.init_node("controller")
-    rate = rospy.Rate(100)
+    rate = rospy.Rate(80)
     rospy.on_shutdown(stop)
 
     # Setup Publishers
@@ -38,19 +40,26 @@ if __name__=='__main__':
 
     #Run the node
     while not rospy.is_shutdown():
-            
-        if instruction == "forward":
-            linearVelocity = 0.1
-            angularVelocity = 0.0
-        elif instruction == "left":
-            linearVelocity = 0.05
-            angularVelocity = 0.07
-        elif instruction == "right":
-            linearVelocity = 0.05
-            angularVelocity = -0.07
+
+        if previousInstruction == instruction:
+            cont += 1
         else: 
+            cont = 0
+
+        if instruction == "forward" and cont >= 20:
+            linearVelocity = 0.05
+            angularVelocity = 0.0
+        elif instruction == "left" and cont >= 20:
+                linearVelocity = 0.02
+                angularVelocity = 0.02
+        elif instruction == "right" and cont >= 20:
+            linearVelocity = 0.02
+            angularVelocity = -0.02
+        else:
             linearVelocity = 0.0
             angularVelocity = 0.0
+        
+        previousInstruction = instruction
 
         # Print information
         print("Linear Velocity: " + str(linearVelocity))
