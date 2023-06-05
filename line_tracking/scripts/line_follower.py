@@ -2,7 +2,7 @@
 import rospy
 import cv2
 import numpy as np
-import rospkgS
+import rospkg
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 from std_msgs.msg import Float32
@@ -108,7 +108,7 @@ def camera_callback(msg):
 def stop():
   print("Stopping")
 #   if video_writer is not None:
-#         video_writer.release()
+#         video_writer.release()    
 
 
 if __name__=='__main__':
