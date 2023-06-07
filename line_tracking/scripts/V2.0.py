@@ -17,13 +17,14 @@ from std_msgs.msg import String
 # export ROS_MASTER_URI=http://10.42.0.1:11311
 # scp line_follower.py puzzlebot@10.42.0.1:/home/puzzlebot/catkin_ws/src/line_tracking/scripts
 
-instruction = ""
+error = 0.0
+centerxl = 0.0
 
 # Add mesage to callback
 def camera_callback(msg):
 
-    global instruction
-
+    global error
+    global center_xl
     global cv_image
     bridge = CvBridge()
     image = bridge.imgmsg_to_cv2(msg, desired_encoding='passthrough')
@@ -31,7 +32,7 @@ def camera_callback(msg):
     # Obtiene las dimensiones de la imagen
     height, width, _ = image.shape
     
-    resized = cv2.resize(image, (width/2,height/2))
+    resized = cv2.resize(image, (640,480))
 
     # Apply a Gaussian Blur filter
     blurred = cv2.GaussianBlur(resized, (13, 13), 0)
@@ -47,8 +48,8 @@ def camera_callback(msg):
     mask = np.zeros_like(edges)
 
     # Define the coordinates of the area of interest (example: a rectangular area)
-    x1, y1 = 140, 180  # Top-left corner
-    x2, y2 = 500, 360  # Bottom-right corner
+    x1, y1 = 40, 280  # Top-left corner
+    x2, y2 = 600, 480  # Bottom-right corner
 
     # Set the area inside the specified coordinates as white in the mask
     mask[y1:y2, x1:x2] = 255
@@ -60,7 +61,7 @@ def camera_callback(msg):
     cv2.rectangle(resized, (x1, y1), (x2, y2), (0, 0, 255), 2)
 
     # Find the contours (Jetson)
-    _, contours, hierarchy = cv2.findContours(masked_edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    contours, _ = cv2.findContours(masked_edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
     widest_line_width = 0
     highest_line_height = 0
@@ -81,12 +82,6 @@ def camera_callback(msg):
             widest_line_width = line_width
             highest_line_height = line_height
     
-    # print("Ancho: " + str(widest_line_width))
-    # print("Alto: " + str(highest_line_height))
-
-    # # Draw all widest line contours
-    # cv2.drawContours(resized, contours, -1, (0, 255, 0), 2)
-
     #Find the contours similar to the biggest contour
     for contour in contours:
         x, y, w, h = cv2.boundingRect(contour)
@@ -164,9 +159,6 @@ def camera_callback(msg):
         contour_size.pop(i-cont)
         widest_contours.pop(i-cont)
         cont += 1
-        
-    # print(sec_filter)
-    # print(contour_size)
 
     highest = 0
     highest2 = 0
@@ -191,11 +183,9 @@ def camera_callback(msg):
                 break
 
     print("Contornos F: "+ str(len(sec_filter)))
-    # print("Contornos I: " + str(len(contour_size)))
-    # print("Iniciales: " + str(len(widest_contours)))
 
-    # print(sec_filter)
-    # print("C: " + str(sec_filter))
+    # contour_size.append([x, y, centroid_x, centroid_y, w, h])
+
     for c in sec_filter: 
         cv2.rectangle(resized, (c[0],c[1]), (c[0]+c[4], c[1]+c[5]), (255, 255, 255), 2)
         cv2.circle(resized, (int(c[2]), int(c[3])), 5, (0, 255, 255), -1)
@@ -203,11 +193,22 @@ def camera_callback(msg):
     # Draw all widest line contours
     cv2.drawContours(resized, widest_contours, -1, (0, 255, 0), 2)
     if(len(sec_filter) == 2):
-        # Center of the line
-        center_xl = (sec_filter[0][2] + sec_filter[1][2])/2
-        center_yl = (sec_filter[0][3] + sec_filter[1][3])/2
+        if(sec_filter[0][1] > sec_filter[1][1]):
+            if(sec_filter[0][0] > sec_filter[1][0]):
+                center_xl = ((sec_filter[0][0] + sec_filter[0][4]) + (sec_filter[1][0] + sec_filter[1][4]))/2
+            else:
+                center_xl = (sec_filter[0][0] + sec_filter[1][0])/2
+        elif (sec_filter[0][1] < sec_filter[1][1]):
+            if(sec_filter[1][0] > sec_filter[0][0]):
+                center_xl = ((sec_filter[0][0] + sec_filter[0][4]) + (sec_filter[1][0] + sec_filter[1][4]))/2
+            else:
+                center_xl = (sec_filter[0][0] + sec_filter[1][0])/2
+        else:
+            # Center of the line
+            center_xl = (sec_filter[0][2] + sec_filter[1][2])/2
+            # center_yl = (sec_filter[0][3] + sec_filter[1][3])/2
     else: 
-        instruction = "stop"
+        error = "stop"
     
     # Obtiene las dimensiones de la imagen
     height, width, _ = resized.shape
@@ -215,23 +216,14 @@ def camera_callback(msg):
     # Calcula las coordenadas del centro
     center_x = int(width / 2)
 
-    cv2.circle(resized, (int(center_xl), int(center_yl)), 5, (255, 0, 255), -1)
-    cv2.circle(resized, (int(center_x), int(center_yl)), 5, (255, 255, 0), -1)
+    cv2.circle(resized, (int(center_xl), height), 5, (255, 0, 255), -1)
+    cv2.circle(resized, (int(center_x), height), 5, (255, 255, 0), -1)
 
-    umbral = 35
-
-    if(abs(center_xl - center_x) < umbral):
-        instruction = "forward"
-    elif(center_xl - center_x > umbral): 
-        instruction = "right"
-    elif(center_xl - center_x < umbral): 
-        instruction = "left"
-    else: 
-        instruction = "stop"
+    error = (center_xl - center_x)
     
-    print("Instruction: " + str(instruction))
-    procesed_pub.publish(bridge.cv2_to_imgmsg(resized, 'rgb8'))
-
+    print("Instruction: " + str(error))
+    procesed_pub.publish(bridge.cv2_to_imgmsg(edges, 'rgb8'))
+    
 
 # Stop Condition
 def stop():
@@ -247,7 +239,7 @@ if __name__=='__main__':
     rospy.on_shutdown(stop)
 
     # Setup Publishers and Suscribers
-    instructor_pub = rospy.Publisher("Instructor", String, queue_size=10)
+    instructor_pub = rospy.Publisher("Instructor", Float32, queue_size=10)
     procesed_pub = rospy.Publisher("processed", Image, queue_size=1)
     rospy.Subscriber("video_source/raw", Image, camera_callback)
     
@@ -256,5 +248,8 @@ if __name__=='__main__':
 
     #Run the node
     while not rospy.is_shutdown():
-        instructor_pub.publish(instruction)
+        try: 
+            instructor_pub.publish(error)
+        except Exception as e:
+            print("Error")
         rate.sleep()
