@@ -6,110 +6,84 @@ import rospkg
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 from std_msgs.msg import Float32
-from std_msgs.msg import String
 
-#Terminal en el puzzlebot 
-# ssh puzzlebot@10.42.0.1
-# roslaunch ros_deep_learning video_source.ros1.launch
+#Global Variables
+error = 0.0
 
-#Terminal en la compu
-# export ROS_IP=10.42.0.16
-# export ROS_MASTER_URI=http://10.42.0.1:11311
-# scp line_follower.py puzzlebot@10.42.0.1:/home/puzzlebot/catkin_ws/src/line_tracking/scripts 
-
-# Global variables
-instruction = ""
-# video_writer = None
-
-# Add mesage to callback
 def camera_callback(msg):
-
-    global instruction
-    # global video_writer
-
+    global error
+    
     global cv_image
     bridge = CvBridge()
     image = bridge.imgmsg_to_cv2(msg, desired_encoding='passthrough')
 
-    # Obtener las dimensiones de la imagen
-    height, width, _ = image.shape
+    # Resize the image to 640x480
+    resized = cv2.resize(image, (640, 480))
 
-    # Apply a Gaussian Blur filter
-    blurred = cv2.GaussianBlur(image, (13, 13), 0)
+    x1 = 140  # x-coordinate of the top-left corner of the ROI
+    y1 = 420  # y-coordinate of the top-left corner of the ROI
+    x2 = 500  # Width of the ROI
+    y2 = 480  # Height of the ROI
 
-    # Apply adaptive threshold to obtain a binary image
-    gray = cv2.cvtColor(blurred, cv2.COLOR_BGR2GRAY)
-    binary = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, 11, 4)
+    # Define the region of interest (ROI)
+    roi = resized[y1:y2, x1:x2]
 
-    # Apply Canny Edge Detector
-    edges = cv2.Canny(binary, 100, 100)
+    #Center of the puzzlebot
+    puzzlebot_x = (x2-x1) /2
 
-    # Create a black mask with the same dimensions as the edges image
-    mask = np.zeros_like(edges)
+    #Mask to detect color black o similar
+    blanco = np.array([120, 120, 120])
+    negro = np.array([0, 0 ,0])
 
-    # Define the coordinates of the area of interest (example: a rectangular area)
-    x1, y1 = 500, 500  # Top-left corner
-    x2, y2 = 800, 750  # Bottom-right corner
+    #Detect colors in the region of interest 
+    roi = cv2.inRange(roi, negro, blanco)
 
-    # Set the area inside the specified coordinates as white in the mask
-    mask[y1:y2, x1:x2] = 255
+    #Invert colors in roi
+    roi = 255-roi
 
-    # # Draw area of interest
-    # cv2.rectangle(image, (x1, y1), (x2, y2), (0, 0, 255), 2)
+    # Apply a Gaussian Blur filterx
+    blurred = cv2.GaussianBlur(roi, (3, 3), 0)
 
-    # Definir las coordenadas de la region central
-    x1_centro = int(width / 2 + 80)
-    x2_centro = int(width / 2 + 170)
-    y1_centro = int(height / 2 + 200)
-    y2_centro = int(height/ 2 + 400)
-    x1_centro2 = int(width / 2 - 170)
-    x2_centro2 = int(width / 2 - 80)
-
-    # Dibujar un rectangulo para visualizar la region central
-    cv2.rectangle(image, (x1_centro, y1_centro), (x2_centro, y2_centro), (255, 0, 0), 2)
-    # Dibujar un rectangulo para visualizar la region central
-    cv2.rectangle(image, (x1_centro2, y1_centro), (x2_centro2, y2_centro), (0, 255, 0), 2)
-
-    # Obtener la region central de la imagen
-    roi_centro = image[y1_centro:y2_centro, x1_centro:x2_centro]
-    roi_centro2 = image[y1_centro:y2_centro, x1_centro2:x2_centro2]
-
-    # Calcular el color promedio de la region central
-    color_promedio_centro = np.mean(roi_centro, axis=(0, 1))
-    color_promedio_rgb_centro = cv2.cvtColor(np.uint8([[color_promedio_centro]]), cv2.COLOR_BGR2RGB)
-
-    # Calcular el color promedio de la region central
-    color_promedio_centro2 = np.mean(roi_centro2, axis=(0, 1))
-    color_promedio_rgb_centro2 = cv2.cvtColor(np.uint8([[color_promedio_centro2]]), cv2.COLOR_BGR2RGB)
-
-    # Imprimir el color promedio
-    print("Derecho: " + str(color_promedio_rgb_centro.mean()))
-    print("Izquierdo: " + str(color_promedio_rgb_centro2.mean()))
-    print("")
+    #Average of colors detected
+    average = np.mean(blurred, axis=0)
     
-    umbral = 120
-    if(color_promedio_rgb_centro.mean() > umbral and color_promedio_rgb_centro2.mean() > umbral):
-        instruction = "forward"
-    elif(color_promedio_rgb_centro.mean() < umbral and color_promedio_rgb_centro2.mean() > umbral):
-        instruction = "right"
-    elif(color_promedio_rgb_centro.mean() > umbral and color_promedio_rgb_centro2.mean() < umbral):
-        instruction = "left"
+    #Array of center line
+    black_segment = []
+
+    #Find center line
+    for x in range(len(average)-1):
+        if average[x] == np.min(average) or average[x] < np.min(average) + 10:
+            black_segment.append(x)
+
+    if(len(black_segment) > 1): #If line is detected
+        #Center of the line
+        midpoint = (max(black_segment) - min(black_segment))/2
+        line_x= black_segment[midpoint]
+
+        # #Center of the line
+        # line_x = black_segment[(len(black_segment)-1)/2]
+        
     else: 
-        instruction = "stop"
+        line_x = puzzlebot_x
 
-    # # Create video writer object
-    # if video_writer is None:
-    #     video_writer = cv2.VideoWriter('output.mp4', cv2.VideoWriter_fourcc(*'mp4v'), 2, (width, height))
+    cv2.circle(blurred, (line_x, 40), 5, (255, 255, 255), -1)
 
-    # # Write image to video
-    # video_writer.write(image)
+    print("Center Line :" + str(line_x))
+    print("Center Image :" + str(puzzlebot_x))
+
+    #Error from center of the line
+    error = puzzlebot_x - line_x
+
+
+    print("Error: " + str(error))
+
+    #Publish image
+    procesed_pub.publish(bridge.cv2_to_imgmsg(blurred, 'mono8'))
+
 
 # Stop Condition
 def stop():
   print("Stopping")
-#   if video_writer is not None:
-#         video_writer.release()    
-
 
 if __name__=='__main__':
 
@@ -117,14 +91,15 @@ if __name__=='__main__':
     
     # Initialize and Setup node at 100Hz
     rospy.init_node("Follower")
-    rate = rospy.Rate(80)
+    rate = rospy.Rate(100)
     rospy.on_shutdown(stop)
 
     # Setup Publishers and Suscribers
-    instructor_pub = rospy.Publisher("Instructor", String, queue_size=10)
+    instructor_pub = rospy.Publisher("Instructor", Float32, queue_size=10)
+    procesed_pub = rospy.Publisher("processed", Image, queue_size=1)
     rospy.Subscriber("video_source/raw", Image, camera_callback)
 
     #Run the node
     while not rospy.is_shutdown():
-        instructor_pub.publish(instruction)
+        instructor_pub.publish(error)
         rate.sleep()
