@@ -208,11 +208,10 @@ if __name__=='__main__':
             elif "stop" in detects:
                 state = "stop"
             elif ("left" in detects or "right" in detects or "forward" in detects) and flag == True:
-                state = "blue_sign"
+                state = "semaforo"
             else:
                 state = "line"
         
-    
         elif state == "slow":
             linearVelocity, angularVelocity = slow(error)
             if len(detects) > 0 and ("working" in detects) == False:
